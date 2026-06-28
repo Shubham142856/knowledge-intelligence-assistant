@@ -1,0 +1,3 @@
+torch>=2.0.0
+titans-pytorch>=0.0.1
+transformers
