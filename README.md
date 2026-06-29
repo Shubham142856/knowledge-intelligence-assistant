@@ -1,177 +1,279 @@
-# VYOR AI — Knowledge Intelligence Assistant
 
-> Powered by **Google Titans Architecture** · Neural Long-Term Memory · Cited Answers
+# Knowledge Intelligence Assistant
 
-## Team Member 2 — Infrastructure Engineer
-
-This repository contains the complete **Team 2 infrastructure** scope:
-
-| Layer | What | File |
-|-------|------|------|
-| 🐳 Containers | Qdrant · Redis · PostgreSQL | `docker-compose.yml` |
-| ⚡ API | FastAPI REST + WebSocket | `src/api/app.py` |
-| 📄 Parsers | PDF · DOCX · PPTX · CSV · TXT | `src/rag/ingestion.py` |
-| 🔍 Vector DB | Qdrant + Hybrid Search (RRF) | `src/vector_db/qdrant_manager.py` |
-| 🤝 Integration | Team 1 boundary (stubs/real) | `src/integration_interface.py` |
-| 🖥️ Dashboard | Streamlit chat UI | `dashboard.py` |
-| 📊 Benchmarks | Retrieval · Needle · Hallucination | `benchmarks/` |
+> **AI-powered enterprise knowledge platform with neural memory, semantic retrieval, and grounded answers.**
+>
+> Built on **Google Titans-inspired Memory Architecture**, Hybrid Retrieval, and Long-Term Neural Memory.
 
 ---
 
-## Quick Start
+## Overview
 
-### 1. Install dependencies
+VYOR AI is an enterprise-grade Knowledge Intelligence Assistant designed to transform organizational knowledge into a searchable, context-aware intelligence layer.
+
+The platform enables users to upload documents, retrieve information through natural language, and receive accurate, citation-backed responses powered by semantic retrieval and neural long-term memory.
+
+---
+
+## Core Components
+
+| Component              | Description                       | Location                          |
+| ---------------------- | --------------------------------- | --------------------------------- |
+| 🐳 Infrastructure      | PostgreSQL, Qdrant, Redis         | `docker-compose.yml`              |
+| ⚡ REST API             | FastAPI + WebSocket Services      | `src/api/app.py`                  |
+| 📄 Document Processing | PDF, DOCX, PPTX, CSV, TXT Parsing | `src/rag/ingestion.py`            |
+| 🔍 Vector Search       | Qdrant + Hybrid Search (RRF)      | `src/vector_db/qdrant_manager.py` |
+| 🔗 Integration Layer   | Application Interfaces            | `src/integration_interface.py`    |
+| 🖥️ Dashboard          | Streamlit Web Interface           | `dashboard.py`                    |
+| 📊 Evaluation Suite    | Retrieval & Quality Benchmarks    | `benchmarks/`                     |
+
+---
+
+# Getting Started
+
+## 1. Clone Repository
 
 ```bash
+git clone <repository-url>
 cd vyor-ai
-python -m venv venv
-# Windows:
-venv\Scripts\activate
-# macOS/Linux:
-source venv/bin/activate
+```
 
+---
+
+## 2. Create Virtual Environment
+
+```bash
+python -m venv venv
+
+# Windows
+venv\Scripts\activate
+
+# macOS / Linux
+source venv/bin/activate
+```
+
+---
+
+## 3. Install Dependencies
+
+```bash
 pip install -r requirements.txt
 ```
 
-### 2. Start infrastructure containers
+---
+
+## 4. Start Infrastructure
 
 ```bash
 docker-compose up -d
-docker ps   # All 3 containers should show "healthy"
 ```
 
-### 3. Copy environment variables
+Verify all services are running:
+
+```bash
+docker ps
+```
+
+---
+
+## 5. Configure Environment
 
 ```bash
 cp .env.example .env
-# Edit .env if your URLs differ from defaults
 ```
 
-### 4. Start FastAPI server
+Update the configuration if required.
+
+---
+
+## 6. Start API Server
 
 ```bash
 uvicorn src.api.app:app --reload --port 8000
-# → http://localhost:8000
-# → http://localhost:8000/docs  (Swagger UI)
 ```
 
-### 5. Start Streamlit dashboard (separate terminal)
+Available at:
+
+```
+http://localhost:8000
+```
+
+Swagger Documentation:
+
+```
+http://localhost:8000/docs
+```
+
+---
+
+## 7. Launch Dashboard
 
 ```bash
 streamlit run dashboard.py --server.port 8501
-# → http://localhost:8501
+```
+
+Dashboard:
+
+```
+http://localhost:8501
 ```
 
 ---
 
-## API Endpoints
+# REST API
 
-| Method | Path | Description |
-|--------|------|-------------|
-| `GET` | `/health` | Service status map |
-| `POST` | `/upload` | Upload a document (PDF/DOCX/PPTX/CSV/TXT) |
-| `POST` | `/query` | Ask a natural-language question |
+| Method | Endpoint  | Description                                    |
+| ------ | --------- | ---------------------------------------------- |
+| GET    | `/health` | Service health status                          |
+| POST   | `/upload` | Upload supported documents                     |
+| POST   | `/query`  | Execute semantic search and question answering |
 
-### Example: Upload
+---
+
+## Upload Example
 
 ```bash
 curl -X POST http://localhost:8000/upload \
-  -F "file=@report.pdf"
+-F "file=@report.pdf"
 ```
 
-### Example: Query
+---
+
+## Query Example
 
 ```bash
 curl -X POST http://localhost:8000/query \
-  -H "Content-Type: application/json" \
-  -d '{"query": "What is the refund policy?"}'
+-H "Content-Type: application/json" \
+-d '{
+      "query":"What is the refund policy?"
+    }'
 ```
 
 ---
 
-## Download Test Datasets (Day 3–7)
+# Evaluation Datasets
+
+Clone the benchmark datasets:
 
 ```bash
-# EnterpriseRAG-Bench — primary retrieval test corpus
 git clone https://github.com/EnterpriseRAG-Bench/enterprise-rag-bench data/enterprise_rag_bench
 
-# BABILong — long-context Titans memory test
 git clone https://github.com/babilong/babilong data/babilong
-
-# Generate needle-in-haystack test files
-python scripts/generate_needle_haystack.py --tokens 100000 \
-  --output data/needle_tests/needle_100k.json
 ```
 
----
-
-## Run Benchmarks (Day 7)
+Generate Needle-in-a-Haystack evaluation data:
 
 ```bash
-# Retrieval accuracy — target > 80%
+python scripts/generate_needle_haystack.py \
+--tokens 100000 \
+--output data/needle_tests/needle_100k.json
+```
+
+---
+
+# Benchmark Suite
+
+Run evaluation scripts:
+
+```bash
 python benchmarks/test_retrieval.py
 
-# Needle-in-haystack — target > 90%
 python benchmarks/test_needle_haystack.py
 
-# Hallucination rate — target < 5%
 python benchmarks/test_hallucination.py
+```
 
-# Results saved to:
-cat benchmarks/results/benchmark_results.json
+Results are written to:
+
+```text
+benchmarks/results/benchmark_results.json
 ```
 
 ---
 
-## Integration Contracts (Day 5)
+# Integration Interface
 
-Team 1 provides `src/integration_interface.py`. Until Day 5, stubs are active.
+The integration layer exposes two application contracts.
+
+### Document Processing
 
 ```python
-# Contract 1 — called for every parsed chunk
-process_incoming_chunk(chunk_text: str, embedding: list[float]) -> str
-# returns: "memory_updated" | "save_to_qdrant"
+process_incoming_chunk(
+    chunk_text: str,
+    embedding: list[float]
+) -> str
+```
 
-# Contract 2 — called for every user query
-run_orchestrator(user_query: str) -> dict
-# returns: {"answer": str, "citations": list[str], "confidence": float}
+Returns:
+
+```
+memory_updated
+```
+
+or
+
+```
+save_to_qdrant
 ```
 
 ---
 
-## Directory Structure
+### Query Orchestration
 
+```python
+run_orchestrator(
+    user_query: str
+) -> dict
 ```
+
+Returns:
+
+```python
+{
+    "answer": str,
+    "citations": list[str],
+    "confidence": float
+}
+```
+
+---
+
+# Project Structure
+
+```text
 vyor-ai/
-├── docker-compose.yml          # Containers
-├── Dockerfile                  # App image
+├── docker-compose.yml
+├── Dockerfile
 ├── requirements.txt
 ├── .env.example
-├── dashboard.py                # Streamlit UI
+├── dashboard.py
 │
 ├── src/
-│   ├── integration_interface.py   # Team 1 boundary
+│   ├── integration_interface.py
 │   ├── api/
 │   │   ├── app.py
 │   │   └── routes/
-│   │       ├── upload.py
-│   │       └── query.py
 │   ├── rag/
 │   │   └── ingestion.py
 │   └── vector_db/
 │       └── qdrant_manager.py
 │
 ├── scripts/
-│   └── generate_needle_haystack.py
 │
 └── benchmarks/
-    ├── test_retrieval.py
-    ├── test_needle_haystack.py
-    ├── test_hallucination.py
-    └── results/
-        └── benchmark_results.json
 ```
 
 ---
 
-*VYOR AI | Team Member 2 — Infrastructure Engineer | v1.0 | June 2026*
+## Technology Stack
+
+* **Backend:** FastAPI
+* **Vector Database:** Qdrant
+* **Database:** PostgreSQL
+* **Cache:** Redis
+* **Retrieval:** Hybrid Search (RRF)
+* **Document Parsing:** PDF, DOCX, PPTX, CSV, TXT
+* **Dashboard:** Streamlit
+* **Containerization:** Docker
+* **API Documentation:** OpenAPI / Swagger
+* **Memory Architecture:** Google Titans-inspired Neural Long-Term Memory
