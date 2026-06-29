@@ -157,16 +157,25 @@ class QdrantManager:
         # — RRF fusion —
         rrf: dict[str, float] = {}
         for rank, hit in enumerate(dense_hits):
-            key       = hit.payload["text"]
-            rrf[key]  = rrf.get(key, 0.0) + 1.0 / (self.RRF_K + rank + 1)
+            payload = hit.payload or {}
+            key     = payload.get("text", "")
+            if key:
+                rrf[key]  = rrf.get(key, 0.0) + 1.0 / (self.RRF_K + rank + 1)
 
         for rank, (_, text) in enumerate(bm25_ranked):
-            rrf[text] = rrf.get(text, 0.0) + 1.0 / (self.RRF_K + rank + 1)
+            if text:
+                rrf[text] = rrf.get(text, 0.0) + 1.0 / (self.RRF_K + rank + 1)
 
         sorted_results = sorted(rrf.items(), key=lambda x: x[1], reverse=True)[:top_k]
 
         # Enrich with source metadata from dense hits
-        meta = {h.payload["text"]: h.payload for h in dense_hits}
+        meta = {}
+        for h in dense_hits:
+            payload = h.payload or {}
+            key = payload.get("text", "")
+            if key:
+                meta[key] = payload
+
         return [
             {
                 "text":   text,
