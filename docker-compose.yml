@@ -1,0 +1,64 @@
+version: '3.8'
+
+services:
+  qdrant:
+    image: qdrant/qdrant:v1.9.0
+    container_name: vyor-qdrant
+    ports:
+      - "6333:6333"
+      - "6334:6334"
+    volumes:
+      - qdrant_data:/qdrant/storage
+    environment:
+      QDRANT__SERVICE__GRPC_PORT: 6334
+      QDRANT__LOG_LEVEL: INFO
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    container_name: vyor-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --save 60 1 --loglevel warning
+    restart: unless-stopped
+
+  postgres:
+    image: postgres:15-alpine
+    container_name: vyor-postgres
+    environment:
+      POSTGRES_USER: knowledge
+      POSTGRES_PASSWORD: knowledge123
+      POSTGRES_DB: vyor_knowledge
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U knowledge"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  api:
+    build: .
+    container_name: vyor-api
+    ports:
+      - "8000:8000"
+      - "8501:8501"
+    environment:
+      QDRANT_URL: http://qdrant:6333
+      REDIS_URL: redis://redis:6379
+      POSTGRES_URL: postgresql://knowledge:knowledge123@postgres:5432/vyor_knowledge
+      API_URL: http://localhost:8000
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+
+volumes:
+  qdrant_data:
+  redis_data:
+  postgres_data:

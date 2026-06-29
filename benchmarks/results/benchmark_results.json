@@ -1,0 +1,23 @@
+{
+  "retrieval_recall": {
+    "recall": 0.8628571428571429,
+    "hits": 151,
+    "total": 175,
+    "pass": true
+  },
+  "needle_haystack": {
+    "recall": 1.0,
+    "pass": true,
+    "sizes": {
+      "1000": true,
+      "10000": true,
+      "100000": true
+    }
+  },
+  "hallucination": {
+    "rate": 0.0,
+    "hallucinated": 0,
+    "total": 200,
+    "pass": true
+  }
+}

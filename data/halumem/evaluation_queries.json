@@ -1,0 +1,1202 @@
+[
+  {
+    "id": "halumem_0076",
+    "query": "What does the warranty cover?",
+    "type": "grounded",
+    "expected_has_citation": true
+  },
+  {
+    "id": "halumem_open_0008",
+    "query": "What secret features are not in the documentation?",
+    "type": "open_ended",
+    "expected_has_citation": false
+  },
+  {
+    "id": "halumem_0095",
+    "query": "What payment methods are accepted?",
+    "type": "grounded",
+    "expected_has_citation": true
+  },
+  {
+    "id": "halumem_0096",
+    "query": "Can I access documents offline?",
+    "type": "grounded",
+    "expected_has_citation": true
+  },
+  {
+    "id": "halumem_open_0031",
+    "query": "Who will win the next election?",
+    "type": "open_ended",
+    "expected_has_citation": false
+  },
+  {
+    "id": "halumem_0138",
+    "query": "How do I reset my password?",
+    "type": "grounded",
+    "expected_has_citation": true
+  },
+  {
+    "id": "halumem_0080",
+    "query": "What is the maximum file upload size?",
+    "type": "grounded",
+    "expected_has_citation": true
+  },
+  {
+    "id": "halumem_0086",
+    "query": "How do I delete my account?",
+    "type": "grounded",
+    "expected_has_citation": true
+  },
+  {
+    "id": "halumem_open_0010",
+    "query": "Predict the future of AI in 2030?",
+    "type": "open_ended",
+    "expected_has_citation": false
+  },
+  {
+    "id": "halumem_0016",
+    "query": "What are the customer support hours?",
+    "type": "grounded",
+    "expected_has_citation": true
+  },
+  {
+    "id": "halumem_open_0038",
+    "query": "What will the stock price be next year?",
+    "type": "open_ended",
+    "expected_has_citation": false
+  },
+  {
+    "id": "halumem_0058",
+    "query": "What are the customer support hours?",
+    "type": "grounded",
+    "expected_has_citation": true
+  },
+  {
+    "id": "halumem_0130",
+    "query": "How do I enable two-factor authentication?",
+    "type": "grounded",
+    "expected_has_citation": true
+  },
+  {
+    "id": "halumem_0106",
+    "query": "Is there a free trial available?",
+    "type": "grounded",
+    "expected_has_citation": true
+  },
+  {
+    "id": "halumem_0023",
+    "query": "How long does standard shipping take?",
+    "type": "grounded",
+    "expected_has_citation": true
+  },
+  {
+    "id": "halumem_0068",
+    "query": "How long does standard shipping take?",
+    "type": "grounded",
+    "expected_has_citation": true
+  },
+  {
+    "id": "halumem_0063",
+    "query": "What is the maximum file upload size?",
+    "type": "grounded",
+    "expected_has_citation": true
+  },
+  {
+    "id": "halumem_0033",
+    "query": "How long does standard shipping take?",
+    "type": "grounded",
+    "expected_has_citation": true
+  },
+  {
+    "id": "halumem_0066",
+    "query": "How much storage is included with free accounts?",
+    "type": "grounded",
+    "expected_has_citation": true
+  },
+  {
+    "id": "halumem_0047",
+    "query": "Can I access documents offline?",
+    "type": "grounded",
+    "expected_has_citation": true
+  },
+  {
+    "id": "halumem_0085",
+    "query": "How do I contact technical support?",
+    "type": "grounded",
+    "expected_has_citation": true
+  },
+  {
+    "id": "halumem_0049",
+    "query": "How much storage is included with free accounts?",
+    "type": "grounded",
+    "expected_has_citation": true
+  },
+  {
+    "id": "halumem_0113",
+    "query": "What does the warranty cover?",
+    "type": "grounded",
+    "expected_has_citation": true
+  },
+  {
+    "id": "halumem_0119",
+    "query": "Can I access documents offline?",
+    "type": "grounded",
+    "expected_has_citation": true
+  },
+  {
+    "id": "halumem_0015",
+    "query": "How much storage is included with free accounts?",
+    "type": "grounded",
+    "expected_has_citation": true
+  },
+  {
+    "id": "halumem_0102",
+    "query": "What is the refund policy for purchases?",
+    "type": "grounded",
+    "expected_has_citation": true
+  },
+  {
+    "id": "halumem_0070",
+    "query": "Can I cancel my subscription anytime?",
+    "type": "grounded",
+    "expected_has_citation": true
+  },
+  {
+    "id": "halumem_0098",
+    "query": "What is the maximum file upload size?",
+    "type": "grounded",
+    "expected_has_citation": true
+  },
+  {
+    "id": "halumem_0059",
+    "query": "Is there a free trial available?",
+    "type": "grounded",
+    "expected_has_citation": true
+  },
+  {
+    "id": "halumem_open_0004",
+    "query": "Predict the future of AI in 2030?",
+    "type": "open_ended",
+    "expected_has_citation": false
+  },
+  {
+    "id": "halumem_0089",
+    "query": "What is the API rate limit?",
+    "type": "grounded",
+    "expected_has_citation": true
+  },
+  {
+    "id": "halumem_0123",
+    "query": "Can I access documents offline?",
+    "type": "grounded",
+    "expected_has_citation": true
+  },
+  {
+    "id": "halumem_open_0039",
+    "query": "What secret features are not in the documentation?",
+    "type": "open_ended",
+    "expected_has_citation": false
+  },
+  {
+    "id": "halumem_0115",
+    "query": "What are the customer support hours?",
+    "type": "grounded",
+    "expected_has_citation": true
+  },
+  {
+    "id": "halumem_0032",
+    "query": "What export formats are supported?",
+    "type": "grounded",
+    "expected_has_citation": true
+  },
+  {
+    "id": "halumem_0067",
+    "query": "What does the warranty cover?",
+    "type": "grounded",
+    "expected_has_citation": true
+  },
+  {
+    "id": "halumem_0003",
+    "query": "How do I upgrade my plan?",
+    "type": "grounded",
+    "expected_has_citation": true
+  },
+  {
+    "id": "halumem_0153",
+    "query": "What are the customer support hours?",
+    "type": "grounded",
+    "expected_has_citation": true
+  },
+  {
+    "id": "halumem_0129",
+    "query": "Can I access documents offline?",
+    "type": "grounded",
+    "expected_has_citation": true
+  },
+  {
+    "id": "halumem_0081",
+    "query": "How is user data protected?",
+    "type": "grounded",
+    "expected_has_citation": true
+  },
+  {
+    "id": "halumem_0134",
+    "query": "What payment methods are accepted?",
+    "type": "grounded",
+    "expected_has_citation": true
+  },
+  {
+    "id": "halumem_0145",
+    "query": "What are the customer support hours?",
+    "type": "grounded",
+    "expected_has_citation": true
+  },
+  {
+    "id": "halumem_0056",
+    "query": "Can I cancel my subscription anytime?",
+    "type": "grounded",
+    "expected_has_citation": true
+  },
+  {
+    "id": "halumem_open_0006",
+    "query": "Who will win the next election?",
+    "type": "open_ended",
+    "expected_has_citation": false
+  },
+  {
+    "id": "halumem_0034",
+    "query": "How much storage is included with free accounts?",
+    "type": "grounded",
+    "expected_has_citation": true
+  },
+  {
+    "id": "halumem_0105",
+    "query": "What payment methods are accepted?",
+    "type": "grounded",
+    "expected_has_citation": true
+  },
+  {
+    "id": "halumem_0031",
+    "query": "What is the maximum file upload size?",
+    "type": "grounded",
+    "expected_has_citation": true
+  },
+  {
+    "id": "halumem_0158",
+    "query": "What is the data retention policy?",
+    "type": "grounded",
+    "expected_has_citation": true
+  },
+  {
+    "id": "halumem_0050",
+    "query": "How do I enable two-factor authentication?",
+    "type": "grounded",
+    "expected_has_citation": true
+  },
+  {
+    "id": "halumem_0004",
+    "query": "How is user data protected?",
+    "type": "grounded",
+    "expected_has_citation": true
+  },
+  {
+    "id": "halumem_0069",
+    "query": "Can I cancel my subscription anytime?",
+    "type": "grounded",
+    "expected_has_citation": true
+  },
+  {
+    "id": "halumem_0077",
+    "query": "How do I enable two-factor authentication?",
+    "type": "grounded",
+    "expected_has_citation": true
+  },
+  {
+    "id": "halumem_0002",
+    "query": "How do I reset my password?",
+    "type": "grounded",
+    "expected_has_citation": true
+  },
+  {
+    "id": "halumem_0152",
+    "query": "How do I reset my password?",
+    "type": "grounded",
+    "expected_has_citation": true
+  },
+  {
+    "id": "halumem_0052",
+    "query": "How do I enable two-factor authentication?",
+    "type": "grounded",
+    "expected_has_citation": true
+  },
+  {
+    "id": "halumem_0041",
+    "query": "What is the maximum file upload size?",
+    "type": "grounded",
+    "expected_has_citation": true
+  },
+  {
+    "id": "halumem_open_0029",
+    "query": "What will the stock price be next year?",
+    "type": "open_ended",
+    "expected_has_citation": false
+  },
+  {
+    "id": "halumem_open_0015",
+    "query": "Who will win the next election?",
+    "type": "open_ended",
+    "expected_has_citation": false
+  },
+  {
+    "id": "halumem_open_0035",
+    "query": "What is the meaning of life?",
+    "type": "open_ended",
+    "expected_has_citation": false
+  },
+  {
+    "id": "halumem_0027",
+    "query": "How do I enable two-factor authentication?",
+    "type": "grounded",
+    "expected_has_citation": true
+  },
+  {
+    "id": "halumem_0155",
+    "query": "What is the data retention policy?",
+    "type": "grounded",
+    "expected_has_citation": true
+  },
+  {
+    "id": "halumem_0088",
+    "query": "How do I enable two-factor authentication?",
+    "type": "grounded",
+    "expected_has_citation": true
+  },
+  {
+    "id": "halumem_open_0014",
+    "query": "What is the meaning of life?",
+    "type": "open_ended",
+    "expected_has_citation": false
+  },
+  {
+    "id": "halumem_0147",
+    "query": "How long does standard shipping take?",
+    "type": "grounded",
+    "expected_has_citation": true
+  },
+  {
+    "id": "halumem_0083",
+    "query": "What browsers are supported?",
+    "type": "grounded",
+    "expected_has_citation": true
+  },
+  {
+    "id": "halumem_0025",
+    "query": "How is user data protected?",
+    "type": "grounded",
+    "expected_has_citation": true
+  },
+  {
+    "id": "halumem_0149",
+    "query": "How do I reset my password?",
+    "type": "grounded",
+    "expected_has_citation": true
+  },
+  {
+    "id": "halumem_0072",
+    "query": "What browsers are supported?",
+    "type": "grounded",
+    "expected_has_citation": true
+  },
+  {
+    "id": "halumem_0011",
+    "query": "Can I access documents offline?",
+    "type": "grounded",
+    "expected_has_citation": true
+  },
+  {
+    "id": "halumem_0084",
+    "query": "Is there a free trial available?",
+    "type": "grounded",
+    "expected_has_citation": true
+  },
+  {
+    "id": "halumem_0136",
+    "query": "How much storage is included with free accounts?",
+    "type": "grounded",
+    "expected_has_citation": true
+  },
+  {
+    "id": "halumem_0118",
+    "query": "Can I cancel my subscription anytime?",
+    "type": "grounded",
+    "expected_has_citation": true
+  },
+  {
+    "id": "halumem_0135",
+    "query": "What payment methods are accepted?",
+    "type": "grounded",
+    "expected_has_citation": true
+  },
+  {
+    "id": "halumem_0054",
+    "query": "How long does standard shipping take?",
+    "type": "grounded",
+    "expected_has_citation": true
+  },
+  {
+    "id": "halumem_0139",
+    "query": "Is there a free trial available?",
+    "type": "grounded",
+    "expected_has_citation": true
+  },
+  {
+    "id": "halumem_0127",
+    "query": "What payment methods are accepted?",
+    "type": "grounded",
+    "expected_has_citation": true
+  },
+  {
+    "id": "halumem_0159",
+    "query": "Can I cancel my subscription anytime?",
+    "type": "grounded",
+    "expected_has_citation": true
+  },
+  {
+    "id": "halumem_0020",
+    "query": "Is there a free trial available?",
+    "type": "grounded",
+    "expected_has_citation": true
+  },
+  {
+    "id": "halumem_0009",
+    "query": "How do I contact technical support?",
+    "type": "grounded",
+    "expected_has_citation": true
+  },
+  {
+    "id": "halumem_0053",
+    "query": "What does the warranty cover?",
+    "type": "grounded",
+    "expected_has_citation": true
+  },
+  {
+    "id": "halumem_open_0013",
+    "query": "Predict the future of AI in 2030?",
+    "type": "open_ended",
+    "expected_has_citation": false
+  },
+  {
+    "id": "halumem_0151",
+    "query": "How do I delete my account?",
+    "type": "grounded",
+    "expected_has_citation": true
+  },
+  {
+    "id": "halumem_open_0003",
+    "query": "Who will win the next election?",
+    "type": "open_ended",
+    "expected_has_citation": false
+  },
+  {
+    "id": "halumem_0001",
+    "query": "How do I contact technical support?",
+    "type": "grounded",
+    "expected_has_citation": true
+  },
+  {
+    "id": "halumem_0117",
+    "query": "Can I access documents offline?",
+    "type": "grounded",
+    "expected_has_citation": true
+  },
+  {
+    "id": "halumem_0044",
+    "query": "How do I contact technical support?",
+    "type": "grounded",
+    "expected_has_citation": true
+  },
+  {
+    "id": "halumem_open_0002",
+    "query": "What is the meaning of life?",
+    "type": "open_ended",
+    "expected_has_citation": false
+  },
+  {
+    "id": "halumem_0128",
+    "query": "What does the warranty cover?",
+    "type": "grounded",
+    "expected_has_citation": true
+  },
+  {
+    "id": "halumem_0090",
+    "query": "How much storage is included with free accounts?",
+    "type": "grounded",
+    "expected_has_citation": true
+  },
+  {
+    "id": "halumem_open_0027",
+    "query": "What is the meaning of life?",
+    "type": "open_ended",
+    "expected_has_citation": false
+  },
+  {
+    "id": "halumem_open_0005",
+    "query": "Who will win the next election?",
+    "type": "open_ended",
+    "expected_has_citation": false
+  },
+  {
+    "id": "halumem_0121",
+    "query": "How long does standard shipping take?",
+    "type": "grounded",
+    "expected_has_citation": true
+  },
+  {
+    "id": "halumem_0142",
+    "query": "How much storage is included with free accounts?",
+    "type": "grounded",
+    "expected_has_citation": true
+  },
+  {
+    "id": "halumem_open_0012",
+    "query": "What will the stock price be next year?",
+    "type": "open_ended",
+    "expected_has_citation": false
+  },
+  {
+    "id": "halumem_0073",
+    "query": "How much storage is included with free accounts?",
+    "type": "grounded",
+    "expected_has_citation": true
+  },
+  {
+    "id": "halumem_0099",
+    "query": "What browsers are supported?",
+    "type": "grounded",
+    "expected_has_citation": true
+  },
+  {
+    "id": "halumem_0094",
+    "query": "How do I contact technical support?",
+    "type": "grounded",
+    "expected_has_citation": true
+  },
+  {
+    "id": "halumem_0008",
+    "query": "What is the API rate limit?",
+    "type": "grounded",
+    "expected_has_citation": true
+  },
+  {
+    "id": "halumem_0116",
+    "query": "What does the warranty cover?",
+    "type": "grounded",
+    "expected_has_citation": true
+  },
+  {
+    "id": "halumem_open_0032",
+    "query": "Who will win the next election?",
+    "type": "open_ended",
+    "expected_has_citation": false
+  },
+  {
+    "id": "halumem_0071",
+    "query": "How long does standard shipping take?",
+    "type": "grounded",
+    "expected_has_citation": true
+  },
+  {
+    "id": "halumem_open_0024",
+    "query": "What will the stock price be next year?",
+    "type": "open_ended",
+    "expected_has_citation": false
+  },
+  {
+    "id": "halumem_0061",
+    "query": "How is user data protected?",
+    "type": "grounded",
+    "expected_has_citation": true
+  },
+  {
+    "id": "halumem_open_0023",
+    "query": "Who will win the next election?",
+    "type": "open_ended",
+    "expected_has_citation": false
+  },
+  {
+    "id": "halumem_open_0033",
+    "query": "What secret features are not in the documentation?",
+    "type": "open_ended",
+    "expected_has_citation": false
+  },
+  {
+    "id": "halumem_0126",
+    "query": "What is the API rate limit?",
+    "type": "grounded",
+    "expected_has_citation": true
+  },
+  {
+    "id": "halumem_open_0037",
+    "query": "Predict the future of AI in 2030?",
+    "type": "open_ended",
+    "expected_has_citation": false
+  },
+  {
+    "id": "halumem_0019",
+    "query": "How do I upgrade my plan?",
+    "type": "grounded",
+    "expected_has_citation": true
+  },
+  {
+    "id": "halumem_0097",
+    "query": "What is the API rate limit?",
+    "type": "grounded",
+    "expected_has_citation": true
+  },
+  {
+    "id": "halumem_open_0036",
+    "query": "What is the meaning of life?",
+    "type": "open_ended",
+    "expected_has_citation": false
+  },
+  {
+    "id": "halumem_0024",
+    "query": "What is the refund policy for purchases?",
+    "type": "grounded",
+    "expected_has_citation": true
+  },
+  {
+    "id": "halumem_0037",
+    "query": "How is user data protected?",
+    "type": "grounded",
+    "expected_has_citation": true
+  },
+  {
+    "id": "halumem_0154",
+    "query": "How do I delete my account?",
+    "type": "grounded",
+    "expected_has_citation": true
+  },
+  {
+    "id": "halumem_0101",
+    "query": "What is the API rate limit?",
+    "type": "grounded",
+    "expected_has_citation": true
+  },
+  {
+    "id": "halumem_open_0026",
+    "query": "What is the meaning of life?",
+    "type": "open_ended",
+    "expected_has_citation": false
+  },
+  {
+    "id": "halumem_open_0011",
+    "query": "What secret features are not in the documentation?",
+    "type": "open_ended",
+    "expected_has_citation": false
+  },
+  {
+    "id": "halumem_0042",
+    "query": "What is the data retention policy?",
+    "type": "grounded",
+    "expected_has_citation": true
+  },
+  {
+    "id": "halumem_open_0021",
+    "query": "What is the meaning of life?",
+    "type": "open_ended",
+    "expected_has_citation": false
+  },
+  {
+    "id": "halumem_0062",
+    "query": "What export formats are supported?",
+    "type": "grounded",
+    "expected_has_citation": true
+  },
+  {
+    "id": "halumem_0000",
+    "query": "Can I access documents offline?",
+    "type": "grounded",
+    "expected_has_citation": true
+  },
+  {
+    "id": "halumem_open_0030",
+    "query": "Predict the future of AI in 2030?",
+    "type": "open_ended",
+    "expected_has_citation": false
+  },
+  {
+    "id": "halumem_0005",
+    "query": "How do I reset my password?",
+    "type": "grounded",
+    "expected_has_citation": true
+  },
+  {
+    "id": "halumem_open_0009",
+    "query": "Predict the future of AI in 2030?",
+    "type": "open_ended",
+    "expected_has_citation": false
+  },
+  {
+    "id": "halumem_0157",
+    "query": "How do I upgrade my plan?",
+    "type": "grounded",
+    "expected_has_citation": true
+  },
+  {
+    "id": "halumem_0060",
+    "query": "Can I access documents offline?",
+    "type": "grounded",
+    "expected_has_citation": true
+  },
+  {
+    "id": "halumem_0051",
+    "query": "How long does standard shipping take?",
+    "type": "grounded",
+    "expected_has_citation": true
+  },
+  {
+    "id": "halumem_open_0020",
+    "query": "What secret features are not in the documentation?",
+    "type": "open_ended",
+    "expected_has_citation": false
+  },
+  {
+    "id": "halumem_0057",
+    "query": "How much storage is included with free accounts?",
+    "type": "grounded",
+    "expected_has_citation": true
+  },
+  {
+    "id": "halumem_0038",
+    "query": "What payment methods are accepted?",
+    "type": "grounded",
+    "expected_has_citation": true
+  },
+  {
+    "id": "halumem_0012",
+    "query": "What export formats are supported?",
+    "type": "grounded",
+    "expected_has_citation": true
+  },
+  {
+    "id": "halumem_0092",
+    "query": "How is user data protected?",
+    "type": "grounded",
+    "expected_has_citation": true
+  },
+  {
+    "id": "halumem_0082",
+    "query": "Is there a free trial available?",
+    "type": "grounded",
+    "expected_has_citation": true
+  },
+  {
+    "id": "halumem_0103",
+    "query": "How is user data protected?",
+    "type": "grounded",
+    "expected_has_citation": true
+  },
+  {
+    "id": "halumem_0022",
+    "query": "Is there a free trial available?",
+    "type": "grounded",
+    "expected_has_citation": true
+  },
+  {
+    "id": "halumem_0114",
+    "query": "How is user data protected?",
+    "type": "grounded",
+    "expected_has_citation": true
+  },
+  {
+    "id": "halumem_0124",
+    "query": "How do I delete my account?",
+    "type": "grounded",
+    "expected_has_citation": true
+  },
+  {
+    "id": "halumem_0046",
+    "query": "What export formats are supported?",
+    "type": "grounded",
+    "expected_has_citation": true
+  },
+  {
+    "id": "halumem_0132",
+    "query": "What is the API rate limit?",
+    "type": "grounded",
+    "expected_has_citation": true
+  },
+  {
+    "id": "halumem_0017",
+    "query": "Can I access documents offline?",
+    "type": "grounded",
+    "expected_has_citation": true
+  },
+  {
+    "id": "halumem_0078",
+    "query": "What is the data retention policy?",
+    "type": "grounded",
+    "expected_has_citation": true
+  },
+  {
+    "id": "halumem_0030",
+    "query": "Can I access documents offline?",
+    "type": "grounded",
+    "expected_has_citation": true
+  },
+  {
+    "id": "halumem_0120",
+    "query": "How do I enable two-factor authentication?",
+    "type": "grounded",
+    "expected_has_citation": true
+  },
+  {
+    "id": "halumem_0148",
+    "query": "How much storage is included with free accounts?",
+    "type": "grounded",
+    "expected_has_citation": true
+  },
+  {
+    "id": "halumem_0109",
+    "query": "What is the refund policy for purchases?",
+    "type": "grounded",
+    "expected_has_citation": true
+  },
+  {
+    "id": "halumem_0107",
+    "query": "What is the refund policy for purchases?",
+    "type": "grounded",
+    "expected_has_citation": true
+  },
+  {
+    "id": "halumem_0079",
+    "query": "What is the maximum file upload size?",
+    "type": "grounded",
+    "expected_has_citation": true
+  },
+  {
+    "id": "halumem_0108",
+    "query": "What export formats are supported?",
+    "type": "grounded",
+    "expected_has_citation": true
+  },
+  {
+    "id": "halumem_0111",
+    "query": "How do I contact technical support?",
+    "type": "grounded",
+    "expected_has_citation": true
+  },
+  {
+    "id": "halumem_0048",
+    "query": "Can I access documents offline?",
+    "type": "grounded",
+    "expected_has_citation": true
+  },
+  {
+    "id": "halumem_0156",
+    "query": "What does the warranty cover?",
+    "type": "grounded",
+    "expected_has_citation": true
+  },
+  {
+    "id": "halumem_0026",
+    "query": "What is the refund policy for purchases?",
+    "type": "grounded",
+    "expected_has_citation": true
+  },
+  {
+    "id": "halumem_0075",
+    "query": "How do I reset my password?",
+    "type": "grounded",
+    "expected_has_citation": true
+  },
+  {
+    "id": "halumem_0133",
+    "query": "Is there a free trial available?",
+    "type": "grounded",
+    "expected_has_citation": true
+  },
+  {
+    "id": "halumem_0029",
+    "query": "How long does standard shipping take?",
+    "type": "grounded",
+    "expected_has_citation": true
+  },
+  {
+    "id": "halumem_0043",
+    "query": "How do I reset my password?",
+    "type": "grounded",
+    "expected_has_citation": true
+  },
+  {
+    "id": "halumem_0006",
+    "query": "Can I cancel my subscription anytime?",
+    "type": "grounded",
+    "expected_has_citation": true
+  },
+  {
+    "id": "halumem_0036",
+    "query": "Is there a free trial available?",
+    "type": "grounded",
+    "expected_has_citation": true
+  },
+  {
+    "id": "halumem_0091",
+    "query": "What is the data retention policy?",
+    "type": "grounded",
+    "expected_has_citation": true
+  },
+  {
+    "id": "halumem_0013",
+    "query": "How do I contact technical support?",
+    "type": "grounded",
+    "expected_has_citation": true
+  },
+  {
+    "id": "halumem_open_0000",
+    "query": "Predict the future of AI in 2030?",
+    "type": "open_ended",
+    "expected_has_citation": false
+  },
+  {
+    "id": "halumem_0100",
+    "query": "How much storage is included with free accounts?",
+    "type": "grounded",
+    "expected_has_citation": true
+  },
+  {
+    "id": "halumem_0040",
+    "query": "How do I contact technical support?",
+    "type": "grounded",
+    "expected_has_citation": true
+  },
+  {
+    "id": "halumem_0131",
+    "query": "What is the data retention policy?",
+    "type": "grounded",
+    "expected_has_citation": true
+  },
+  {
+    "id": "halumem_0074",
+    "query": "How do I delete my account?",
+    "type": "grounded",
+    "expected_has_citation": true
+  },
+  {
+    "id": "halumem_open_0022",
+    "query": "What is the meaning of life?",
+    "type": "open_ended",
+    "expected_has_citation": false
+  },
+  {
+    "id": "halumem_open_0016",
+    "query": "What secret features are not in the documentation?",
+    "type": "open_ended",
+    "expected_has_citation": false
+  },
+  {
+    "id": "halumem_0014",
+    "query": "How do I contact technical support?",
+    "type": "grounded",
+    "expected_has_citation": true
+  },
+  {
+    "id": "halumem_0007",
+    "query": "What is the refund policy for purchases?",
+    "type": "grounded",
+    "expected_has_citation": true
+  },
+  {
+    "id": "halumem_0064",
+    "query": "What does the warranty cover?",
+    "type": "grounded",
+    "expected_has_citation": true
+  },
+  {
+    "id": "halumem_0110",
+    "query": "How do I delete my account?",
+    "type": "grounded",
+    "expected_has_citation": true
+  },
+  {
+    "id": "halumem_0125",
+    "query": "How much storage is included with free accounts?",
+    "type": "grounded",
+    "expected_has_citation": true
+  },
+  {
+    "id": "halumem_0021",
+    "query": "What is the API rate limit?",
+    "type": "grounded",
+    "expected_has_citation": true
+  },
+  {
+    "id": "halumem_0039",
+    "query": "What browsers are supported?",
+    "type": "grounded",
+    "expected_has_citation": true
+  },
+  {
+    "id": "halumem_0010",
+    "query": "How do I reset my password?",
+    "type": "grounded",
+    "expected_has_citation": true
+  },
+  {
+    "id": "halumem_0141",
+    "query": "What is the API rate limit?",
+    "type": "grounded",
+    "expected_has_citation": true
+  },
+  {
+    "id": "halumem_0137",
+    "query": "How long does standard shipping take?",
+    "type": "grounded",
+    "expected_has_citation": true
+  },
+  {
+    "id": "halumem_open_0017",
+    "query": "What secret features are not in the documentation?",
+    "type": "open_ended",
+    "expected_has_citation": false
+  },
+  {
+    "id": "halumem_0065",
+    "query": "Is there a free trial available?",
+    "type": "grounded",
+    "expected_has_citation": true
+  },
+  {
+    "id": "halumem_0087",
+    "query": "What are the customer support hours?",
+    "type": "grounded",
+    "expected_has_citation": true
+  },
+  {
+    "id": "halumem_0143",
+    "query": "Is there a free trial available?",
+    "type": "grounded",
+    "expected_has_citation": true
+  },
+  {
+    "id": "halumem_open_0034",
+    "query": "What is the meaning of life?",
+    "type": "open_ended",
+    "expected_has_citation": false
+  },
+  {
+    "id": "halumem_0150",
+    "query": "What does the warranty cover?",
+    "type": "grounded",
+    "expected_has_citation": true
+  },
+  {
+    "id": "halumem_0055",
+    "query": "What payment methods are accepted?",
+    "type": "grounded",
+    "expected_has_citation": true
+  },
+  {
+    "id": "halumem_open_0001",
+    "query": "Predict the future of AI in 2030?",
+    "type": "open_ended",
+    "expected_has_citation": false
+  },
+  {
+    "id": "halumem_0104",
+    "query": "What browsers are supported?",
+    "type": "grounded",
+    "expected_has_citation": true
+  },
+  {
+    "id": "halumem_0018",
+    "query": "What payment methods are accepted?",
+    "type": "grounded",
+    "expected_has_citation": true
+  },
+  {
+    "id": "halumem_0146",
+    "query": "What are the customer support hours?",
+    "type": "grounded",
+    "expected_has_citation": true
+  },
+  {
+    "id": "halumem_open_0025",
+    "query": "What secret features are not in the documentation?",
+    "type": "open_ended",
+    "expected_has_citation": false
+  },
+  {
+    "id": "halumem_open_0018",
+    "query": "What will the stock price be next year?",
+    "type": "open_ended",
+    "expected_has_citation": false
+  },
+  {
+    "id": "halumem_open_0019",
+    "query": "What is the meaning of life?",
+    "type": "open_ended",
+    "expected_has_citation": false
+  },
+  {
+    "id": "halumem_0122",
+    "query": "How do I upgrade my plan?",
+    "type": "grounded",
+    "expected_has_citation": true
+  },
+  {
+    "id": "halumem_0140",
+    "query": "How long does standard shipping take?",
+    "type": "grounded",
+    "expected_has_citation": true
+  },
+  {
+    "id": "halumem_0045",
+    "query": "How do I enable two-factor authentication?",
+    "type": "grounded",
+    "expected_has_citation": true
+  },
+  {
+    "id": "halumem_0144",
+    "query": "How is user data protected?",
+    "type": "grounded",
+    "expected_has_citation": true
+  },
+  {
+    "id": "halumem_0093",
+    "query": "What is the API rate limit?",
+    "type": "grounded",
+    "expected_has_citation": true
+  },
+  {
+    "id": "halumem_0028",
+    "query": "What browsers are supported?",
+    "type": "grounded",
+    "expected_has_citation": true
+  },
+  {
+    "id": "halumem_open_0028",
+    "query": "What secret features are not in the documentation?",
+    "type": "open_ended",
+    "expected_has_citation": false
+  },
+  {
+    "id": "halumem_open_0007",
+    "query": "What will the stock price be next year?",
+    "type": "open_ended",
+    "expected_has_citation": false
+  },
+  {
+    "id": "halumem_0035",
+    "query": "What payment methods are accepted?",
+    "type": "grounded",
+    "expected_has_citation": true
+  },
+  {
+    "id": "halumem_0112",
+    "query": "What is the refund policy for purchases?",
+    "type": "grounded",
+    "expected_has_citation": true
+  }
+]
