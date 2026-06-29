@@ -39,16 +39,21 @@ class QdrantManager:
     VECTOR_DIM  = 384       # must match all-MiniLM-L6-v2
     RRF_K       = 60        # standard RRF constant
 
+    _client_instance = None
+
     def __init__(self) -> None:
-        path = os.getenv("QDRANT_PATH")
-        if path:
-            os.makedirs(path, exist_ok=True)
-            self.client = QdrantClient(path=path)
-            log.info(f"Initialized local in-process Qdrant database at: {path}")
-        else:
-            url = os.getenv("QDRANT_URL", "http://localhost:6333")
-            self.client   = QdrantClient(url=url, timeout=20)
-            log.info(f"Initialized Qdrant client connecting to: {url}")
+        if QdrantManager._client_instance is None:
+            path = os.getenv("QDRANT_PATH")
+            if path:
+                os.makedirs(path, exist_ok=True)
+                QdrantManager._client_instance = QdrantClient(path=path)
+                log.info(f"Initialized local in-process Qdrant database singleton at: {path}")
+            else:
+                url = os.getenv("QDRANT_URL", "http://localhost:6333")
+                QdrantManager._client_instance = QdrantClient(url=url, timeout=20)
+                log.info(f"Connected to remote Qdrant database singleton at: {url}")
+        
+        self.client = QdrantManager._client_instance
         self.embedder = get_embedder()
         self._corpus: list[str] = []
         self._bm25: Optional[BM25Okapi] = None
