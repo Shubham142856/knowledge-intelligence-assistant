@@ -1,118 +1,132 @@
-import json
+"""
+orchestrator.py — VYOROrchestrator & AgentOrchestrator
 
-# SYSTEM PROMPTS
-PLANNER_PROMPT = "You are the PLANNER Agent. Break down the user query."
-RESEARCHER_PROMPT = "You are the RESEARCHER Agent."
-WRITER_PROMPT = "You are the WRITER Agent."
-CRITIC_PROMPT = "You are the CRITIC Agent."
+Iterative Multi-Agent Debate Loop coordinating:
+  1. Planner Agent — Decomposes query into sub-questions.
+  2. Researcher Agent — Retrieves context from Qdrant via hybrid search.
+  3. Writer Agent — Synthesizes facts into draft answer with citations.
+  4. Critic Agent — Audits draft for hallucination and quality.
+"""
+
+import json
+import logging
+from src.agents.planner import Planner
+from src.agents.researcher import Researcher
+from src.agents.writer import Writer
+from src.agents.critic import Critic
+
+log = logging.getLogger("vyor_ai.orchestrator")
+
 
 class VYOROrchestrator:
-    def __init__(self, retrieval_fn=None):
+    """
+    Multi-Agent coordinator for Q&A reasoning.
+    Runs a debate loop between Writer and Critic up to max_debate_iterations.
+    """
+
+    def __init__(self, memory_core=None, retrieval_fn=None):
+        # Handle arguments positional/keyword swap safely
+        # E.g., if initialized as VYOROrchestrator(partner_qdrant_search_fn)
+        if callable(memory_core) and retrieval_fn is None:
+            retrieval_fn = memory_core
+            memory_core = None
+
+        self.memory = memory_core
         self.retrieval_fn = retrieval_fn if retrieval_fn else self._mock_qdrant_search
-        self.max_debate_iterations = 3
-        self.current_context = []
+        self.max_debate_iterations = 1
+        self.quality_gate = 0.80
 
-    def _mock_qdrant_search(self, query: str) -> list[str]:
-        return ["Source: HR_Policy_2026.pdf | Medical leaves are capped at 15 days per calendar year. Approval from Lead is mandatory."]
+        # Instantiate agents
+        self.planner = Planner()
+        self.researcher = Researcher()
+        self.critic = Critic()
+        self.writer = Writer()
 
-    def _mock_llm_call(self, system_prompt: str, user_content: str) -> str:
-        # Check if we have real retrieved context (i.e. not the default mock HR policy)
-        has_real_context = False
-        if hasattr(self, "current_context") and self.current_context:
-            if not any("HR_Policy_2026.pdf" in str(c) for c in self.current_context):
-                has_real_context = True
-
-        if has_real_context:
-            first_ctx = self.current_context[0]
-            source = "Unknown Source"
-            text = first_ctx
-            if " | " in first_ctx:
-                parts = first_ctx.split(" | ", 1)
-                source_part = parts[0]
-                text = parts[1]
-                if source_part.startswith("Source: "):
-                    source = source_part[len("Source: "):]
-            
-            if "PLANNER" in system_prompt:
-                return json.dumps({"steps": ["Analyze document content", "Extract matching answers"]})
-            elif "RESEARCHER" in system_prompt:
-                return json.dumps({"extracted_facts": text, "source": source})
-            elif "WRITER" in system_prompt:
-                return json.dumps({
-                    "answer": f"According to the document '{source}': {text}",
-                    "citations": [source]
-                })
-            elif "CRITIC" in system_prompt:
-                return "APPROVED"
-
-        # Fallback to standard mock HR responses if no user document is uploaded
-        if "PLANNER" in system_prompt:
-            return json.dumps({"steps": ["Search for medical leave policy limits", "Check approval workflows"]})
-        
-        elif "RESEARCHER" in system_prompt:
-            return json.dumps({"extracted_facts": "Medical leaves = 15 days max. Needs Lead approval.", "source": "HR_Policy_2026.pdf"})
-        
-        elif "WRITER" in system_prompt:
-            if "REJECTED" in user_content:
-                return json.dumps({
-                    "answer": "According to the HR Policy 2026, employees are entitled to a maximum of 15 medical leaves per calendar year, requiring mandatory approval from the Lead.",
-                    "citations": ["HR_Policy_2026.pdf"]
-                })
-            return json.dumps({
-                "answer": "You get some days off for medical reasons but you must ask your boss first.",
-                "citations": []
-            })
-            
-        elif "CRITIC" in system_prompt:
-            if "15 days" in user_content:
-                return "APPROVED"
-            else:
-                return "REJECTED: Draft lacks precise metrics (15 days) and structural source citations."
-        
-        return "{}"
+    def _mock_qdrant_search(self, query: str) -> list[dict]:
+        """Fallback mock search if no real Qdrant function is connected."""
+        return [
+            {
+                "text": "Medical leaves are capped at 15 days per calendar year. Lead approval is mandatory.",
+                "source": "HR_Policy_2026.pdf",
+                "score": 0.9,
+            }
+        ]
 
     def execute_query(self, user_query: str) -> dict:
-        print(f"\n[Orchestrator]: Ingesting user query -> '{user_query}'")
-        
-        retrieved_context = self.retrieval_fn(user_query)
-        self.current_context = retrieved_context
-        print(f"[Qdrant Connector] Context Retrieved: {retrieved_context}")
-        
-        planner_res = self._mock_llm_call(PLANNER_PROMPT, user_query)
-        plan = json.loads(planner_res).get("steps", [])
-        print(f"[Planner] Sub-steps identified: {plan}")
-        
-        researcher_res = self._mock_llm_call(RESEARCHER_PROMPT, f"Context: {retrieved_context}")
-        facts = json.loads(researcher_res)
-        
-        iteration = 0
-        current_answer_dict = {}
-        is_approved = False
-        feedback = "Initial Draft Construction"
-        
-        while iteration < self.max_debate_iterations and not is_approved:
-            iteration += 1
-            print(f" [Debate Loop] Iteration {iteration}/{self.max_debate_iterations} active...")
+        """
+        Main entrypoint.
+        Decomposes query, retrieves context, and runs iterative Critic-Writer debate.
+        """
+        log.info(f"Orchestrator: Ingesting query -> '{user_query}'")
+
+        # Step 1: Decompose query into sub-questions
+        plan = self.planner.run({"query": user_query})
+        sub_questions = plan.get("sub_questions", [user_query])
+        log.info(f"Orchestrator: sub-questions -> {sub_questions}")
+
+        # Step 2: Retrieve context for each sub-question
+        research = self.researcher.run({
+            "sub_questions": sub_questions,
+            "retrieve_fn": self.retrieval_fn
+        })
+        context_chunks = research.get("context_chunks", [])
+        sources = research.get("sources", [])
+        log.info(f"Orchestrator: context chunks -> {len(context_chunks)}, sources -> {sources}")
+
+        # Step 3: Generate initial draft
+        draft = self.writer.run({
+            "query": user_query,
+            "context": context_chunks,
+            "sources": sources,
+        })
+        log.info(f"Orchestrator: Initial draft generated (confidence={draft.get('confidence')})")
+
+        # Step 4: Iterative debate loop with dynamic depth based on complexity
+        complexity = int(plan.get("complexity", 2))
+        max_iters = 3 if complexity >= 3 else 1
+        log.info(f"Orchestrator: query complexity is {complexity}. Setting dynamic debate depth to {max_iters} iterations.")
+
+        feedback = {"score": 0.5, "issues": [], "approved": False}
+        for iteration in range(1, max_iters + 1):
+            log.info(f"Orchestrator: Debate iteration {iteration}/{max_iters}")
             
-            writer_input = f"Facts: {facts} | Feedback from Critic: {feedback}"
-            writer_res = self._mock_llm_call(WRITER_PROMPT, writer_input)
-            current_answer_dict = json.loads(writer_res)
-            
-            critic_res = self._mock_llm_call(CRITIC_PROMPT, f"Draft: {writer_res}")
-            print(f" [Critic Evaluation]: {critic_res}")
-            
-            if critic_res.strip().upper() == "APPROVED":
-                is_approved = True
-                print(" [Critic Status]: Verification successful! Formatting final output packet.")
-            else:
-                feedback = critic_res
-        
-        confidence_score = 0.95 if is_approved else 0.40
-        final_answer = current_answer_dict.get("answer", "")
-        final_citations = current_answer_dict.get("citations", [])
-        
+            # Critic audits the draft
+            feedback = self.critic.run({
+                "draft": draft,
+                "context": context_chunks,
+            })
+            log.info(f"Orchestrator: Critic evaluation score={feedback.get('score')} | approved={feedback.get('approved')}")
+
+            # Stop if approved or passes quality gate
+            if feedback.get("approved", False) or feedback.get("score", 0.0) >= self.quality_gate:
+                break
+
+            # If this is the last iteration, cap reached — set uncertainty
+            if iteration == max_iters:
+                draft["uncertainty_flag"] = True
+                break
+
+            # Writer refines using critic feedback
+            draft = self.writer.run({
+                "query": user_query,
+                "context": context_chunks,
+                "sources": sources,
+                "critique": feedback.get("issues", []),
+            })
+
+        # Step 5: Format final return packet
+        confidence = float(feedback.get("score", 0.75))
         return {
-            "answer": final_answer,
-            "citations": final_citations,
-            "confidence": confidence_score
+            "answer": draft.get("text", "Error generating response."),
+            "citations": draft.get("sources", sources),
+            "confidence": confidence,
+            "uncertainty": draft.get("uncertainty_flag", confidence < 0.65),
         }
+
+    def run(self, user_query: str) -> dict:
+        """Alias for AgentOrchestrator compatibility."""
+        return self.execute_query(user_query)
+
+
+# Alias AgentOrchestrator to VYOROrchestrator for absolute compatibility
+AgentOrchestrator = VYOROrchestrator

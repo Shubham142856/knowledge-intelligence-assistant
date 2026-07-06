@@ -1,6 +1,10 @@
+import sys
 import torch
 from titans_memory import VYORNeuralBrain
 from surprise_gate import VYORSurpriseGate
+
+# Ensure Windows terminal doesn't crash on unicode chars
+sys.stdout.reconfigure(encoding="utf-8")
 
 
 def test_ai_brain():

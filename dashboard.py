@@ -289,7 +289,7 @@ if prompt := st.chat_input("Ask a question about your documents ..."):
             resp = requests.post(
                 f"{API}/query",
                 json={"query": prompt},
-                timeout=30,
+                timeout=120,
             )
             resp.raise_for_status()
             data = resp.json()

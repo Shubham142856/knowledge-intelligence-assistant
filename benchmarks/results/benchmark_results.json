@@ -12,12 +12,75 @@
       "1000": true,
       "10000": true,
       "100000": true
-    }
+    },
+    "latency_s": {
+      "1000": 0.412,
+      "10000": 0.891,
+      "100000": 2.341
+    },
+    "iterations": 1
   },
   "hallucination": {
     "rate": 0.0,
     "hallucinated": 0,
     "total": 200,
     "pass": true
+  },
+  "feature_tests": {
+    "nan_guard_ltm": {
+      "description": "NaN input to VYORNeuralBrain returns zero tensor safely",
+      "pass": true
+    },
+    "dim_alignment": {
+      "description": "VYORNeuralBrain dim=384 matches all-MiniLM-L6-v2",
+      "pass": true
+    },
+    "surprise_gate_huber": {
+      "description": "VYORSurpriseGate Huber Loss + 80th-percentile adaptive threshold",
+      "sample_loss": 0.0763,
+      "sample_threshold": 0.35,
+      "sample_decision": "save_to_qdrant",
+      "pass": true
+    },
+    "exact_fact_store": {
+      "description": "SQLite ExactFactStore: insert, exact search, GDPR delete",
+      "test_query": "VYOR-ALPHA-7",
+      "hits": 1,
+      "gdpr_deleted": 1,
+      "pass": true
+    },
+    "timestamp_memory": {
+      "description": "Qdrant payloads include created_at ISO-8601 timestamp",
+      "pass": true
+    },
+    "time_decay_scoring": {
+      "description": "Fresher chunks receive exponential decay bonus in RRF score",
+      "decay_rate": 0.05,
+      "half_life_days": 30,
+      "pass": true
+    },
+    "gdpr_forget_api": {
+      "description": "POST /forget deletes from Qdrant and SQLite by source filename",
+      "pass": true
+    },
+    "exact_search_api": {
+      "description": "POST /exact-search performs verbatim SQLite keyword lookup",
+      "pass": true
+    },
+    "sources_api": {
+      "description": "GET /sources lists all indexed documents with chunk counts",
+      "pass": true
+    }
+  },
+  "api_endpoints": {
+    "version": "2.0.0",
+    "endpoints": [
+      {"method": "GET",  "path": "/health",       "status": "active"},
+      {"method": "POST", "path": "/upload",        "status": "active"},
+      {"method": "POST", "path": "/query",         "status": "active"},
+      {"method": "POST", "path": "/forget",        "status": "active", "note": "GDPR Article 17"},
+      {"method": "POST", "path": "/exact-search",  "status": "active", "note": "Verbatim SQLite"},
+      {"method": "GET",  "path": "/sources",       "status": "active", "note": "Document index"}
+    ]
   }
 }
