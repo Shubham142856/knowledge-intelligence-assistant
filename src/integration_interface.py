@@ -134,8 +134,8 @@ def process_incoming_chunk(chunk_text: str, embedding: list[float]) -> str:
     )
 
     if decision == "memory_updated":
-        # Commit to LTM
-        _brain.learn_new_info(chunk_tensor)
+        # Commit to LTM with adaptive forgetting weight decay
+        _brain.learn_new_info(chunk_tensor, alpha_t=_gate.last_alpha_t)
         return "memory_updated"
 
     return "save_to_qdrant"

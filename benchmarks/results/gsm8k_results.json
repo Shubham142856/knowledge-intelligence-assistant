@@ -1,0 +1,7 @@
+{
+  "total_questions": 10,
+  "single_agent_accuracy": 1.0,
+  "debate_accuracy": 0.9,
+  "correct_single": 10,
+  "correct_debate": 9
+}

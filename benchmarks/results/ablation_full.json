@@ -1,0 +1,74 @@
+[
+  {
+    "configuration": "Full VYOR System (Control)",
+    "avg_latency_s": 14.1787,
+    "avg_confidence": 0.514,
+    "avg_citations": 0.6,
+    "uncertainty_triggers": 2,
+    "success_rate": 1.0
+  },
+  {
+    "configuration": "- Surprise Gate",
+    "avg_latency_s": 24.6017,
+    "avg_confidence": 0.52,
+    "avg_citations": 0.4,
+    "uncertainty_triggers": 2,
+    "success_rate": 1.0
+  },
+  {
+    "configuration": "- Titans LTM",
+    "avg_latency_s": 28.5743,
+    "avg_confidence": 0.3,
+    "avg_citations": 0.4,
+    "uncertainty_triggers": 4,
+    "success_rate": 1.0
+  },
+  {
+    "configuration": "- Critic Agent",
+    "avg_latency_s": 12.8713,
+    "avg_confidence": 1.0,
+    "avg_citations": 0.4,
+    "uncertainty_triggers": 0,
+    "success_rate": 1.0
+  },
+  {
+    "configuration": "- Debate Loop",
+    "avg_latency_s": 9.468,
+    "avg_confidence": 1.0,
+    "avg_citations": 0.2,
+    "uncertainty_triggers": 0,
+    "success_rate": 1.0
+  },
+  {
+    "configuration": "- Hybrid Search",
+    "avg_latency_s": 7.8479,
+    "avg_confidence": 1.0,
+    "avg_citations": 0.6,
+    "uncertainty_triggers": 0,
+    "success_rate": 1.0
+  },
+  {
+    "configuration": "- RRF Fusion",
+    "avg_latency_s": 9.8635,
+    "avg_confidence": 1.0,
+    "avg_citations": 0.6,
+    "uncertainty_triggers": 0,
+    "success_rate": 1.0
+  },
+  {
+    "configuration": "- Time Decay",
+    "avg_latency_s": 12.4525,
+    "avg_confidence": 1.0,
+    "avg_citations": 0.6,
+    "uncertainty_triggers": 0,
+    "success_rate": 1.0
+  },
+  {
+    "configuration": "- Persistent Tokens",
+    "avg_latency_s": 11.9544,
+    "avg_confidence": 1.0,
+    "avg_citations": 0.4,
+    "uncertainty_triggers": 0,
+    "success_rate": 1.0
+  }
+]

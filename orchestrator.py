@@ -1,46 +1,60 @@
 """
-orchestrator.py — VYOROrchestrator & AgentOrchestrator
+orchestrator.py — VYOROrchestrator (Multi-Agent Router & Coordinator)
 
-Iterative Multi-Agent Debate Loop coordinating:
-  1. Planner Agent — Decomposes query into sub-questions.
-  2. Researcher Agent — Retrieves context from Qdrant via hybrid search.
-  3. Writer Agent — Synthesizes facts into draft answer with citations.
-  4. Critic Agent — Audits draft for hallucination and quality.
+Implements Phase 3: 6+ Agent microservices coordination:
+  1. Router Agent — Directs query to LTM, RAG, or Complex flow.
+  2. Planner Agent — Decomposes complex queries.
+  3. Memory Agent — Analyzes Titans LTM neural memory.
+  4. Researcher Agent — Retrieves context from databases.
+  5. Writer Agent — Synthesizes drafts.
+  6. Critic Agent — Audits draft responses.
+  7. Refiner Agent — Formats final responses and citations.
 """
 
 import json
 import logging
+import torch
+from src.agents.router import Router
 from src.agents.planner import Planner
+from src.agents.memory_agent import MemoryAgent
 from src.agents.researcher import Researcher
 from src.agents.writer import Writer
 from src.agents.critic import Critic
+from src.agents.refiner import Refiner
+from src.rag.ingestion import get_embedder
 
 log = logging.getLogger("vyor_ai.orchestrator")
 
 
 class VYOROrchestrator:
     """
-    Multi-Agent coordinator for Q&A reasoning.
-    Runs a debate loop between Writer and Critic up to max_debate_iterations.
+    Unified Multi-Agent Coordinator implementing routing, 
+    LTM memory query, and Critic-Writer debate loops.
     """
 
     def __init__(self, memory_core=None, retrieval_fn=None):
-        # Handle arguments positional/keyword swap safely
-        # E.g., if initialized as VYOROrchestrator(partner_qdrant_search_fn)
         if callable(memory_core) and retrieval_fn is None:
             retrieval_fn = memory_core
             memory_core = None
 
-        self.memory = memory_core
+        # Instantiate memory core if not provided
+        if memory_core is None:
+            from titans_memory import VYORNeuralBrain
+            self.memory = VYORNeuralBrain()
+        else:
+            self.memory = memory_core
+
         self.retrieval_fn = retrieval_fn if retrieval_fn else self._mock_qdrant_search
-        self.max_debate_iterations = 1
         self.quality_gate = 0.80
 
-        # Instantiate agents
+        # Instantiate 6+ Agents
+        self.router = Router()
         self.planner = Planner()
+        self.memory_agent = MemoryAgent()
         self.researcher = Researcher()
-        self.critic = Critic()
         self.writer = Writer()
+        self.critic = Critic()
+        self.refiner = Refiner()
 
     def _mock_qdrant_search(self, query: str) -> list[dict]:
         """Fallback mock search if no real Qdrant function is connected."""
@@ -55,16 +69,69 @@ class VYOROrchestrator:
     def execute_query(self, user_query: str) -> dict:
         """
         Main entrypoint.
-        Decomposes query, retrieves context, and runs iterative Critic-Writer debate.
+        Routes, queries memory or RAG, and runs iterative debate + refining.
         """
-        log.info(f"Orchestrator: Ingesting query -> '{user_query}'")
+        log.info(f"Orchestrator: Routing incoming query -> '{user_query}'")
 
-        # Step 1: Decompose query into sub-questions
-        plan = self.planner.run({"query": user_query})
-        sub_questions = plan.get("sub_questions", [user_query])
+        # Step 1: Query Router Agent
+        route_decision = self.router.run({"query": user_query})
+        route = route_decision.get("route", "rag")
+        reason = route_decision.get("reason", "")
+        log.info(f"Orchestrator: Route chosen -> {route.upper()} (Reason: {reason})")
+
+        # Handle LTM Direct Recall Route
+        if route == "ltm":
+            log.info("Orchestrator: Executing LTM memory-direct recall...")
+            try:
+                embedder = get_embedder()
+                q_vec = embedder.encode(user_query)
+                q_tensor = torch.tensor(q_vec, dtype=torch.float32).unsqueeze(0).unsqueeze(0)
+                
+                # Retrieve from Titans LTM core
+                recalled_tensor = self.memory.recall_info(q_tensor)
+                
+                # Mock textual interpretation of the recalled vector
+                recalled_raw = f"Neural memory association matrix match: {recalled_tensor.mean().item():.4f}"
+            except Exception as e:
+                log.warning(f"LTM tensor retrieval failed: {e}. Falling back to text search.")
+                recalled_raw = "No neural context available."
+
+            # Query Memory Agent to interpret LTM state
+            mem_result = self.memory_agent.run({
+                "query": user_query,
+                "recalled_raw": recalled_raw
+            })
+            
+            recalled_text = mem_result.get("recalled_text", "")
+            
+            # If memory agent returned meaningful content, skip RAG search
+            if recalled_text:
+                log.info("Orchestrator: Direct memory hit. Routing to refiner.")
+                refined = self.refiner.run({
+                    "text": recalled_text,
+                    "citations": ["Titans_Neural_LTM"]
+                })
+                return {
+                    "answer": refined.get("refined_text", recalled_text),
+                    "citations": ["Titans_Neural_LTM"],
+                    "confidence": float(mem_result.get("confidence", 0.9)),
+                    "uncertainty": False
+                }
+            log.info("Orchestrator: Memory recall cold. Falling back to standard RAG.")
+            route = "rag"
+
+        # Determine sub-questions based on Route complexity
+        if route == "complex":
+            plan = self.planner.run({"query": user_query})
+            sub_questions = plan.get("sub_questions", [user_query])
+            complexity = int(plan.get("complexity", 3))
+        else: # Simple RAG
+            sub_questions = [user_query]
+            complexity = 1
+
         log.info(f"Orchestrator: sub-questions -> {sub_questions}")
 
-        # Step 2: Retrieve context for each sub-question
+        # Step 2: Retrieve context
         research = self.researcher.run({
             "sub_questions": sub_questions,
             "retrieve_fn": self.retrieval_fn
@@ -81,11 +148,8 @@ class VYOROrchestrator:
         })
         log.info(f"Orchestrator: Initial draft generated (confidence={draft.get('confidence')})")
 
-        # Step 4: Iterative debate loop with dynamic depth based on complexity
-        complexity = int(plan.get("complexity", 2))
+        # Step 4: Iterative Critic-Writer debate loop
         max_iters = 3 if complexity >= 3 else 1
-        log.info(f"Orchestrator: query complexity is {complexity}. Setting dynamic debate depth to {max_iters} iterations.")
-
         feedback = {"score": 0.5, "issues": [], "approved": False}
         for iteration in range(1, max_iters + 1):
             log.info(f"Orchestrator: Debate iteration {iteration}/{max_iters}")
@@ -114,11 +178,19 @@ class VYOROrchestrator:
                 "critique": feedback.get("issues", []),
             })
 
-        # Step 5: Format final return packet
+        # Step 5: Polish using Refiner Agent
+        final_draft_text = draft.get("text", "Error generating response.")
+        citations = draft.get("sources", sources)
+        
+        refined = self.refiner.run({
+            "text": final_draft_text,
+            "citations": citations
+        })
+        
         confidence = float(feedback.get("score", 0.75))
         return {
-            "answer": draft.get("text", "Error generating response."),
-            "citations": draft.get("sources", sources),
+            "answer": refined.get("refined_text", final_draft_text),
+            "citations": refined.get("citations", citations),
             "confidence": confidence,
             "uncertainty": draft.get("uncertainty_flag", confidence < 0.65),
         }

@@ -20,7 +20,7 @@ import datetime
 from typing import Optional
 from dotenv import load_dotenv
 
-load_dotenv()
+load_dotenv(override=True)
 
 import numpy as np
 from qdrant_client import QdrantClient
@@ -182,6 +182,17 @@ class QdrantManager:
         db_dir  = os.getenv("QDRANT_PATH", "data/qdrant_db")
         db_path = os.path.join(db_dir, "exact_facts.db")
         self.exact_store = ExactFactStore(db_path)
+
+        # Optional MS-MARCO Cross-Encoder reranker
+        self.reranker = None
+        if os.getenv("USE_RERANKER", "true").lower() == "true":
+            try:
+                from sentence_transformers import CrossEncoder
+                log.info("Loading Cross-Encoder reranker cross-encoder/ms-marco-MiniLM-L-6-v2...")
+                self.reranker = CrossEncoder("cross-encoder/ms-marco-MiniLM-L-6-v2")
+                log.info("Cross-Encoder reranker ready.")
+            except Exception as e:
+                log.warning(f"Could not initialize Cross-Encoder: {e}. Falling back to standard RRF.")
 
     # ── Collection setup ──────────────────────────────────────────────────────
 
@@ -362,7 +373,22 @@ class QdrantManager:
                     except ValueError:
                         pass
 
-        sorted_results = sorted(rrf.items(), key=lambda x: x[1], reverse=True)[:top_k]
+        # Rerank the top candidates using Cross-Encoder if available
+        sorted_candidates = sorted(rrf.items(), key=lambda x: x[1], reverse=True)[:top_k * 3]
+        if self.reranker and sorted_candidates:
+            try:
+                pairs = [(query, text) for text, _ in sorted_candidates]
+                rerank_scores = self.reranker.predict(pairs)
+                reranked = [
+                    (text, float(score))
+                    for (text, _), score in zip(sorted_candidates, rerank_scores)
+                ]
+                sorted_results = sorted(reranked, key=lambda x: x[1], reverse=True)[:top_k]
+            except Exception as e:
+                log.warning(f"Reranking failed: {e}. Falling back to RRF rankings.")
+                sorted_results = sorted_candidates[:top_k]
+        else:
+            sorted_results = sorted_candidates[:top_k]
 
         return [
             {

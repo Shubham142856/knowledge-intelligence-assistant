@@ -1,0 +1,7 @@
+{
+  "total_questions": 10,
+  "zero_shot_accuracy": 0.9,
+  "rag_accuracy": 0.2,
+  "correct_zero_shot": 9,
+  "correct_rag": 2
+}

@@ -1,0 +1,32 @@
+[
+  {
+    "db_size": 100,
+    "ingest_rate_pts_sec": 55.52,
+    "avg_search_latency_ms": 1.48,
+    "p95_search_latency_ms": 3.92
+  },
+  {
+    "db_size": 500,
+    "ingest_rate_pts_sec": 54.03,
+    "avg_search_latency_ms": 5.314,
+    "p95_search_latency_ms": 8.446
+  },
+  {
+    "db_size": 1000,
+    "ingest_rate_pts_sec": 53.04,
+    "avg_search_latency_ms": 9.494,
+    "p95_search_latency_ms": 12.947
+  },
+  {
+    "db_size": 5000,
+    "ingest_rate_pts_sec": 51.72,
+    "avg_search_latency_ms": 27.611,
+    "p95_search_latency_ms": 45.716
+  },
+  {
+    "db_size": 10000,
+    "ingest_rate_pts_sec": 9.69,
+    "avg_search_latency_ms": 59.93,
+    "p95_search_latency_ms": 91.309
+  }
+]

@@ -19,8 +19,9 @@ OUTPUT FORMAT (strict JSON):
 }
 
 Rules:
-- Base your answer ONLY on the provided context chunks.
-- If the context does not contain enough information to answer, state this clearly, set confidence to 0.0, and empty sources.
+- Base your answer on the provided context chunks if they contain relevant information to the query.
+- If the context chunks are irrelevant, empty, or do not contain enough information, you MUST answer the query using your own internal general knowledge and reasoning. Do not state that you lack information or cannot answer.
+- Cite sources from the context ONLY if they are relevant and used.
 - Incorporate Critic critique issues if they are provided to refine your answer.
 """
 

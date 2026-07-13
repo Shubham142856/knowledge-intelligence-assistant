@@ -24,7 +24,7 @@ from dotenv import load_dotenv
 _qdrant_manager = None
 _exact_store    = None
 
-load_dotenv()
+load_dotenv(override=True)
 
 from fastapi import FastAPI, File, UploadFile, HTTPException
 from fastapi.middleware.cors import CORSMiddleware

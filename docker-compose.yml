@@ -50,10 +50,27 @@ services:
       - "8501:8501"
     environment:
       QDRANT_URL: http://qdrant:6333
-      REDIS_URL: redis://redis:6379
+      REDIS_URL: redis://redis:6379/0
       POSTGRES_URL: postgresql://knowledge:knowledge123@postgres:5432/vyor_knowledge
       API_URL: http://localhost:8000
+      OPENROUTER_API_KEY: ${OPENROUTER_API_KEY}
     depends_on:
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+
+  worker:
+    build: .
+    container_name: vyor-worker
+    command: celery -A src.tasks.celery_app worker --loglevel=info
+    environment:
+      QDRANT_URL: http://qdrant:6333
+      REDIS_URL: redis://redis:6379/0
+      POSTGRES_URL: postgresql://knowledge:knowledge123@postgres:5432/vyor_knowledge
+      OPENROUTER_API_KEY: ${OPENROUTER_API_KEY}
+    depends_on:
+      redis:
+        condition: service_started
       postgres:
         condition: service_healthy
     restart: unless-stopped

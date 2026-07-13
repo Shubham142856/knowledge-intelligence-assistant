@@ -1,0 +1,62 @@
+[
+  {
+    "system": "Full VYOR System",
+    "avg_latency_s": 20.5348,
+    "p95_latency_s": 37.5457,
+    "avg_confidence": 0.375,
+    "avg_citations": 0.3,
+    "uncertainty_triggers": 6,
+    "hallucination_rate": 0.7,
+    "success_rate": 1.0
+  },
+  {
+    "system": "Vanilla RAG Baseline",
+    "avg_latency_s": 19.5439,
+    "p95_latency_s": 44.7323,
+    "avg_confidence": 0.8,
+    "avg_citations": 1,
+    "uncertainty_triggers": 0,
+    "hallucination_rate": 0.0,
+    "success_rate": 1.0
+  },
+  {
+    "system": "Hybrid RAG Baseline",
+    "avg_latency_s": 18.1228,
+    "p95_latency_s": 21.4212,
+    "avg_confidence": 0.85,
+    "avg_citations": 1,
+    "uncertainty_triggers": 0,
+    "hallucination_rate": 0.0,
+    "success_rate": 1.0
+  },
+  {
+    "system": "No Memory Baseline",
+    "avg_latency_s": 46.1536,
+    "p95_latency_s": 236.7375,
+    "avg_confidence": 0.39,
+    "avg_citations": 0.3,
+    "uncertainty_triggers": 6,
+    "hallucination_rate": 0.7,
+    "success_rate": 1.0
+  },
+  {
+    "system": "No Critic Baseline",
+    "avg_latency_s": 37.8897,
+    "p95_latency_s": 105.4499,
+    "avg_confidence": 0.985,
+    "avg_citations": 0.6,
+    "uncertainty_triggers": 0,
+    "hallucination_rate": 0.4,
+    "success_rate": 1.0
+  },
+  {
+    "system": "No Debate Baseline",
+    "avg_latency_s": 23.2519,
+    "p95_latency_s": 42.3855,
+    "avg_confidence": 0.382,
+    "avg_citations": 0.3,
+    "uncertainty_triggers": 7,
+    "hallucination_rate": 0.7,
+    "success_rate": 1.0
+  }
+]

@@ -1,0 +1,24 @@
+{
+  "memory_profile": {
+    "initial_ram_mb": 451.56,
+    "post_init_ram_mb": 524.76,
+    "ram_overhead_mb": 73.2,
+    "peak_query_ram_mb": 530.58
+  },
+  "compute_profile": {
+    "orchestrator_init_time_s": 0.2823,
+    "avg_query_cpu_process_time_s": 5.4219
+  },
+  "storage_profile": {
+    "qdrant_storage_mb": 82.075,
+    "sqlite_exact_store_mb": 0.043,
+    "total_local_db_mb": 82.118
+  },
+  "api_cost_profile": {
+    "avg_prompt_tokens_per_query": 2500,
+    "avg_completion_tokens_per_query": 600,
+    "cost_per_million_input_usd": 0.0,
+    "cost_per_million_output_usd": 0.0,
+    "estimated_cost_per_query_usd": 0.0
+  }
+}

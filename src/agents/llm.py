@@ -12,7 +12,7 @@ import requests
 from dotenv import load_dotenv
 
 # Load environment variables from .env at import time
-load_dotenv()
+load_dotenv(override=True)
 
 log = logging.getLogger("vyor_ai.agents.llm")
 
@@ -29,66 +29,148 @@ CHAT_MODEL_FALLBACKS = [
 
 def call_llm(system_prompt: str, user_content: str, retries: int = 3) -> str:
     """
-    Call the OpenRouter API chat completions endpoint.
-    If the primary model fails, times out, or returns a safety block,
-    automatically falls back to secondary free models.
+    Call LLM completions. Uses Cloud APIs primarily (OpenRouter Paid -> Groq -> Gemini),
+    falls back to local Ollama (gemma2:2b -> deepseek-coder -> orca-mini -> llama3) if cloud fails,
+    and raises RuntimeError if everything fails.
     """
-    if not OPENROUTER_API_KEY:
-        log.warning("OPENROUTER_API_KEY not set. Using offline fallback mock response.")
-        return get_mock_fallback(system_prompt, user_content)
+    GROQ_API_KEY = os.getenv("GROQ_API_KEY", "").strip()
+    GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "").strip()
+    OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY", "").strip()
 
-    url = "https://openrouter.ai/api/v1/chat/completions"
-    headers = {
-        "Authorization": f"Bearer {OPENROUTER_API_KEY}",
-        "Content-Type": "application/json",
-        "HTTP-Referer": os.getenv("OPENROUTER_SITE_URL", "http://localhost:8000"),
-        "X-Title": os.getenv("OPENROUTER_SITE_NAME", "VYOR-AI"),
-    }
-
-    # Attempt to query with fallback models if the first choice fails or blocks
-    for model_candidate in CHAT_MODEL_FALLBACKS:
-        log.info(f"LLM Call: using model '{model_candidate}'")
+    # 1. Try OpenRouter (meta-llama/llama-3.1-8b-instruct)
+    if OPENROUTER_API_KEY:
+        print(f"  [LLM Core] Routing query to cloud via OpenRouter (meta-llama/llama-3.1-8b-instruct)")
+        log.info("LLM Call: attempting OpenRouter (meta-llama/llama-3.1-8b-instruct)")
+        url = "https://openrouter.ai/api/v1/chat/completions"
+        headers = {
+            "Authorization": f"Bearer {OPENROUTER_API_KEY}",
+            "Content-Type": "application/json",
+            "HTTP-Referer": os.getenv("OPENROUTER_SITE_URL", "http://localhost:8000"),
+            "X-Title": os.getenv("OPENROUTER_SITE_NAME", "VYOR-AI"),
+        }
         payload = {
-            "model": model_candidate,
+            "model": "meta-llama/llama-3.1-8b-instruct",
             "messages": [
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": user_content},
             ],
+            "temperature": 0.3,
         }
-
         for attempt in range(retries):
             try:
-                resp = requests.post(url, headers=headers, json=payload, timeout=25)
-                
-                # Check for rate-limiting
-                if resp.status_code == 429:
-                    wait = 2 ** attempt
-                    log.warning(f"OpenRouter 429 for model {model_candidate}. Retrying in {wait}s...")
-                    time.sleep(wait)
-                    continue
-
+                resp = requests.post(url, headers=headers, json=payload, timeout=20)
                 if resp.status_code == 200:
-                    body = resp.json()
-                    content = body["choices"][0]["message"]["content"]
-                    
-                    # Check if response text looks like a safety block message or OpenRouter glitch
-                    if "User Safety:" in content or "safety policy" in content.lower():
-                        log.warning(f"Model '{model_candidate}' returned a safety block/glitch message. Trying next fallback.")
-                        break # break the retry loop to try the next model candidate
-                        
+                    content = resp.json()["choices"][0]["message"]["content"]
                     return content.strip()
-                
-                # If model is not found or other non-429 error, try next candidate
-                log.warning(f"Model '{model_candidate}' returned error {resp.status_code}. Trying next fallback.")
-                break
-                
+                elif resp.status_code == 429:
+                    wait = 2 ** attempt
+                    log.warning(f"OpenRouter 429. Retrying in {wait}s...")
+                    time.sleep(wait)
+                else:
+                    log.warning(f"OpenRouter returned error {resp.status_code}: {resp.text}")
+                    break
             except Exception as e:
-                log.warning(f"Request failed for model '{model_candidate}' on attempt {attempt+1}/{retries}: {e}")
-                if attempt == retries - 1:
-                    log.warning(f"All retries failed for model '{model_candidate}'. Trying next fallback.")
+                log.warning(f"OpenRouter request failed: {e}")
 
-    log.error("All fallback models failed on OpenRouter. Returning offline fallback.")
-    return get_mock_fallback(system_prompt, user_content)
+    # 2. Try Groq (Llama 3.1 8B Instant)
+    if GROQ_API_KEY:
+        print(f"  [LLM Core] Routing query to cloud via Groq (llama-3.1-8b-instant)")
+        log.info("LLM Call: attempting Groq (llama-3.1-8b-instant)")
+        url = "https://api.groq.com/openai/v1/chat/completions"
+        headers = {
+            "Authorization": f"Bearer {GROQ_API_KEY}",
+            "Content-Type": "application/json",
+        }
+        payload = {
+            "model": "llama-3.1-8b-instant",
+            "messages": [
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": user_content},
+            ],
+            "temperature": 0.3,
+        }
+        for attempt in range(retries):
+            try:
+                resp = requests.post(url, headers=headers, json=payload, timeout=15)
+                if resp.status_code == 200:
+                    content = resp.json()["choices"][0]["message"]["content"]
+                    return content.strip()
+                elif resp.status_code == 429:
+                    wait = 2 ** attempt
+                    log.warning(f"Groq 429. Retrying in {wait}s...")
+                    time.sleep(wait)
+                else:
+                    log.warning(f"Groq returned error {resp.status_code}: {resp.text}")
+                    break
+            except Exception as e:
+                log.warning(f"Groq request failed: {e}")
+
+    # 3. Try Gemini (gemini-3.5-flash) via native REST
+    if GEMINI_API_KEY:
+        print(f"  [LLM Core] Routing query to cloud via Gemini (gemini-3.5-flash)")
+        log.info("LLM Call: attempting Gemini (gemini-3.5-flash)")
+        url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent?key={GEMINI_API_KEY}"
+        headers = {"Content-Type": "application/json"}
+        # Format matching Gemini API
+        payload = {
+            "systemInstruction": {
+                "parts": [{"text": system_prompt}]
+            },
+            "contents": [
+                {"role": "user", "parts": [{"text": user_content}]}
+            ],
+            "generationConfig": {
+                "temperature": 0.3
+            }
+        }
+        for attempt in range(retries):
+            try:
+                resp = requests.post(url, headers=headers, json=payload, timeout=20)
+                if resp.status_code == 200:
+                    res_json = resp.json()
+                    # extract candidate text
+                    content = res_json["candidates"][0]["content"]["parts"][0]["text"]
+                    return content.strip()
+                elif resp.status_code == 429:
+                    wait = 2 ** attempt
+                    log.warning(f"Gemini 429. Retrying in {wait}s...")
+                    time.sleep(wait)
+                else:
+                    log.warning(f"Gemini returned error {resp.status_code}: {resp.text}")
+                    break
+            except Exception as e:
+                log.warning(f"Gemini request failed: {e}")
+
+    # 4. Fallback: Try local Ollama (gemma2:2b or lightweight fallbacks)
+    print("  [LLM Core] All Cloud providers failed/unavailable. Attempting fallback via local Ollama...")
+    ollama_url = "http://localhost:11434/v1/chat/completions"
+    for local_model in ["gemma2:2b", "deepseek-coder", "orca-mini", "llama3"]:
+        payload = {
+            "model": local_model,
+            "messages": [
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": user_content},
+            ],
+            "temperature": 0.3,
+        }
+        try:
+            log.info(f"LLM Call: attempting local Ollama ({local_model})")
+            resp = requests.post(ollama_url, json=payload, timeout=15)
+            if resp.status_code == 200:
+                print(f"  [LLM Core] Routing query locally via Ollama ({local_model})")
+                content = resp.json()["choices"][0]["message"]["content"]
+                return content.strip()
+            elif resp.status_code == 404 or "not found" in resp.text.lower():
+                log.info(f"Ollama model {local_model} not found, trying next local model.")
+                continue
+            else:
+                log.warning(f"Ollama returned error status {resp.status_code}: {resp.text}")
+                continue
+        except Exception as e:
+            log.warning(f"Local Ollama connection failed or not running: {e}")
+            break
+
+    raise RuntimeError("All LLM providers (Cloud APIs and local Ollama) failed. Cannot synthesize real response.")
 
 
 def clean_json_response(text: str) -> dict:
@@ -169,7 +251,30 @@ def get_mock_fallback(system_prompt: str, user_content: str) -> str:
     Offline/Fallback mock responses when API is down or key is missing.
     Matches the schema requirements of each agent.
     """
-    if "Planner" in system_prompt or "PLANNER_PROMPT" in system_prompt:
+    if "Router" in system_prompt:
+        route = "ltm" if any(x in user_content.lower() for x in ["hi", "hello", "hey", "remember"]) else "complex"
+        return json.dumps({
+            "route": route,
+            "reason": f"Mock routing to {route} based on query text."
+        })
+    elif "MemoryAgent" in system_prompt:
+        return json.dumps({
+            "recalled_text": "Neural memory recall check: Medical leaves are capped at 15 days per calendar year and require lead approval.",
+            "confidence": 0.90
+        })
+    elif "Refiner" in system_prompt:
+        try:
+            payload = json.loads(user_content)
+            draft_text = payload.get("draft_text", "")
+            citations = payload.get("citations_present", [])
+        except Exception:
+            draft_text = user_content
+            citations = []
+        return json.dumps({
+            "refined_text": draft_text,
+            "citations": citations
+        })
+    elif "Planner" in system_prompt or "PLANNER_PROMPT" in system_prompt:
         return json.dumps({
             "sub_questions": ["Find medical leave limits", "Identify approval workflow"],
             "query_type": "factual",

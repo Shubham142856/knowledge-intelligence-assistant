@@ -1,0 +1,44 @@
+[
+  {
+    "category": "Out-of-Domain",
+    "query": "What is the capital city of ancient Atlantis according to the legendary dialogues of Plato?",
+    "answer": "The context provided does not contain any information about the capital city of ancient Atlantis, as per the legendary dialogues of Plato. The context chunk mentions medical leaves and lead approval, which are unrelated to the query.",
+    "citations": [],
+    "confidence": 0.0,
+    "uncertainty_flag": true,
+    "admitted_lack_of_info": false
+  },
+  {
+    "category": "Contradictory Information",
+    "query": "How many total vacation days do employees receive per year?",
+    "answer": "The provided context does not contain information about the total number of vacation days employees receive per year. It does mention, however, that medical leaves are capped at 15 days per calendar year.",
+    "citations": [
+      "HR_Policy_2026.pdf"
+    ],
+    "confidence": 0.8,
+    "uncertainty_flag": false,
+    "admitted_lack_of_info": false
+  },
+  {
+    "category": "Extremely Long Query",
+    "query": "Tell me about the work hours and remote work policies and remote work policies and remote work policies and remote work policies and remote work policies and remote work policies and remote work policies and remote work policies and remote work policies and remote work policies and remote work policies and remote work policies and remote work policies and remote work policies and remote work policies and remote work policies and remote work policies and remote work policies and remote work policies and remote work policies and remote work policies and remote work policies and remote work policies and remote work policies and remote work policies and remote work policies and remote work policies and remote work policies and remote work policies and remote work policies and remote work policies and remote work policies and remote work policies and remote work policies and remote work policies and remote work policies and remote work policies and remote work policies and remote work policies and remote work policies and remote work policies and remote work policies and remote work policies and remote work policies and remote work policies and remote work policies and remote work policies and remote work policies and remote work policies and remote work policies for engineering contractors?",
+    "answer": "The provided context chunks do not contain any information regarding work hours, remote work policies, or remote work policies for engineering contractors. However, it is noted that medical leaves are capped at 15 days per calendar year and require lead approval.",
+    "citations": [
+      "HR_Policy_2026.pdf"
+    ],
+    "confidence": 0.8,
+    "uncertainty_flag": false,
+    "admitted_lack_of_info": false
+  },
+  {
+    "category": "Ambiguous/Malformed",
+    "query": "When does the... you know, the policy about the stuff... apply to people?",
+    "answer": "Unfortunately, the provided context does not contain sufficient information to determine when the policy regarding medical leaves applies to individuals. However, it does mention that medical leaves are capped at 15 days per calendar year. For further information, please consult [HR_Policy_2026.pdf].",
+    "citations": [
+      "HR_Policy_2026.pdf"
+    ],
+    "confidence": 0.9,
+    "uncertainty_flag": false,
+    "admitted_lack_of_info": false
+  }
+]
