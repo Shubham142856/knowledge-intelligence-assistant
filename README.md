@@ -1,4 +1,4 @@
-: Enterprise Knowledge Platform with Google Titans Memory
+KIA {knowledge-intelligence-assistant} : Enterprise Knowledge Platform with Google Titans Memory
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
@@ -21,7 +21,7 @@
 
 ## 📐 System Architecture
 
-VYOR-AI splits execution paths based on query novelty to optimize latency, API token consumption, and retrieval quality.
+KIA splits execution paths based on query novelty to optimize latency, API token consumption, and retrieval quality.
 
 ```mermaid
 graph TD
@@ -49,14 +49,14 @@ graph TD
 
 ## 📊 Empirical Verification Results
 
-VYOR-AI has been rigorously validated across multiple baseline tests:
+KIA has been rigorously validated across multiple baseline tests:
 
 ### 1. Baselines & Latency Comparison
 The system achieves a **2.25x speedup in average latency** and a **6.3x tail (p95) speedup** compared to standard agentic RAG searches.
 
 | Configuration | Avg Latency (s) | p95 Latency (s) | Avg Confidence | Avg Citations | Uncertainty Triggers |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| **Full VYOR System** | **20.53s** | **37.54s** | 37.50% | 0.3 | 6 |
+| **Full KIA System** | **20.53s** | **37.54s** | 37.50% | 0.3 | 6 |
 | **No Memory Baseline** | **46.15s** | **236.73s** | 39.00% | 0.3 | 6 |
 | **Vanilla RAG Baseline** | 19.54s | 44.73s | 80.00% | 1.0 | 0 |
 | **No Debate Baseline** | 23.25s | 42.38s | 38.20% | 0.3 | 7 |
@@ -85,7 +85,7 @@ Ensure you have **Python 3.10+** and **Docker** installed.
 ### 2. Clone and Setup Environment
 ```bash
 git clone <repository-url>
-cd vyor-ai
+cd KIA
 python -m venv .venv
 ```
 Activate virtual environment:
