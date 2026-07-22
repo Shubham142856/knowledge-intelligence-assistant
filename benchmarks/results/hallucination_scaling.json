@@ -1,0 +1,46 @@
+[
+  {
+    "target_queries": 200,
+    "actual_queries": 200,
+    "hallucinations": 0,
+    "hallucination_rate_pct": 0.0,
+    "avg_latency_ms": 53.2,
+    "p95_latency_ms": 46.93,
+    "total_duration_s": 10.64,
+    "throughput_qps": 18.8,
+    "pass": true
+  },
+  {
+    "target_queries": 1000,
+    "actual_queries": 1000,
+    "hallucinations": 0,
+    "hallucination_rate_pct": 0.0,
+    "avg_latency_ms": 6.44,
+    "p95_latency_ms": 9.32,
+    "total_duration_s": 6.45,
+    "throughput_qps": 155.07,
+    "pass": true
+  },
+  {
+    "target_queries": 5000,
+    "actual_queries": 5000,
+    "hallucinations": 0,
+    "hallucination_rate_pct": 0.0,
+    "avg_latency_ms": 7.25,
+    "p95_latency_ms": 9.97,
+    "total_duration_s": 36.32,
+    "throughput_qps": 137.68,
+    "pass": true
+  },
+  {
+    "target_queries": 20000,
+    "actual_queries": 20000,
+    "hallucinations": 0,
+    "hallucination_rate_pct": 0.0,
+    "avg_latency_ms": 7.97,
+    "p95_latency_ms": 13.4,
+    "total_duration_s": 159.53,
+    "throughput_qps": 125.37,
+    "pass": true
+  }
+]

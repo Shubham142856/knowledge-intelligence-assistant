@@ -34,11 +34,13 @@ class Researcher(BaseAgent):
         context_chunks = []
         sources = set()
 
-        # Run retrieval for each decomposed sub-question
-        for q in sub_questions:
+        from concurrent.futures import ThreadPoolExecutor
+
+        def fetch_subq(q):
             try:
-                # retrieve_fn returns list of dicts: {text, score, source, created_at}
                 results = retrieve_fn(q)
+                fetched = []
+                srcs = []
                 for r in results:
                     if isinstance(r, dict):
                         text = r.get("text", "")
@@ -48,13 +50,27 @@ class Researcher(BaseAgent):
                         src = "unknown"
                     else:
                         continue
-                    
-                    if text and text not in context_chunks:
-                        context_chunks.append(text)
+                    if text:
+                        fetched.append(text)
                     if src:
-                        sources.add(src)
+                        srcs.append(src)
+                return fetched, srcs
             except Exception as e:
                 log.error(f"Error during Researcher retrieval for '{q}': {e}")
+                return [], []
+
+        # Run parallel retrieval for decomposed sub-questions
+        max_workers = min(len(sub_questions), 4) if sub_questions else 1
+        with ThreadPoolExecutor(max_workers=max_workers) as executor:
+            res_list = list(executor.map(fetch_subq, sub_questions))
+
+        for fetched_chunks, fetched_srcs in res_list:
+            for text in fetched_chunks:
+                if text not in context_chunks:
+                    context_chunks.append(text)
+            for src in fetched_srcs:
+                sources.add(src)
+
 
         return {
             "context_chunks": context_chunks,

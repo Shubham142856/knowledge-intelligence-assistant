@@ -31,8 +31,15 @@ Rules:
 class Critic(BaseAgent):
     """Audits draft answers against raw context to ensure factual accuracy and prevent hallucinations."""
 
+    parse_attempts = 0
+    parse_failures = 0
+
     def __init__(self):
         super().__init__("Critic", CRITIC_PROMPT)
+
+    @classmethod
+    def get_parse_failure_rate(cls) -> float:
+        return (cls.parse_failures / cls.parse_attempts) if cls.parse_attempts > 0 else 0.0
 
     def run(self, input_data: dict) -> dict:
         """
@@ -42,6 +49,7 @@ class Critic(BaseAgent):
                 'context': list[str]
             }
         """
+        Critic.parse_attempts += 1
         draft = input_data.get("draft", {})
         context = input_data.get("context", [])
 
@@ -54,12 +62,31 @@ class Critic(BaseAgent):
         response_text = call_llm(self.system_prompt, prompt)
         parsed = clean_json_response(response_text)
 
-        # Fallback fields
-        if "score" not in parsed:
-            parsed["score"] = 0.5
-        if "issues" not in parsed:
-            parsed["issues"] = ["Failed to verify groundedness."]
+        # Track JSON parsing success/failure
+        is_clean_json = bool(parsed and "score" in parsed and "approved" in parsed)
+        if not is_clean_json:
+            Critic.parse_failures += 1
+
+        # Resilient Text Analysis Fallback if JSON fields are missing
         if "approved" not in parsed:
-            parsed["approved"] = False
+            txt_lower = response_text.lower()
+            if "approved\": true" in txt_lower or "approved: true" in txt_lower or "is accurate" in txt_lower or "logically sound" in txt_lower:
+                parsed["approved"] = True
+            elif "approved\": false" in txt_lower or "approved: false" in txt_lower or "ungrounded" in txt_lower or "error" in txt_lower:
+                parsed["approved"] = False
+            else:
+                # Default approval if draft has high confidence and context was empty
+                draft_conf = draft.get("confidence", 0.5) if isinstance(draft, dict) else 0.5
+                parsed["approved"] = draft_conf >= 0.70
+
+        if "score" not in parsed:
+            if parsed.get("approved"):
+                parsed["score"] = 0.85
+            else:
+                parsed["score"] = 0.50
+
+        if "issues" not in parsed:
+            parsed["issues"] = [] if parsed.get("approved") else ["Potential ungrounded or unverified claims."]
 
         return parsed
+

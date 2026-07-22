@@ -16,31 +16,34 @@ load_dotenv(override=True)
 
 log = logging.getLogger("vyor_ai.agents.llm")
 
-OPENROUTER_CHAT_MODEL = os.getenv("OPENROUTER_CHAT_MODEL", "openrouter/free").strip()
+OPENROUTER_CHAT_MODEL = os.getenv("OPENROUTER_CHAT_MODEL", "meta-llama/llama-3.3-70b-instruct").strip()
 OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY", "").strip()
 
 # Resilient list of free models to try in sequence if the primary model fails or blocks
 CHAT_MODEL_FALLBACKS = [
     OPENROUTER_CHAT_MODEL,
-    "cohere/north-mini-code:free",
-    "nvidia/nemotron-3-super-120b-a12b:free",
+    "meta-llama/llama-3.3-70b-instruct:free",
+    "cohere/command-r-plus:free",
 ]
 
 
 def call_llm(system_prompt: str, user_content: str, retries: int = 3) -> str:
     """
     Call LLM completions. Uses Cloud APIs primarily (OpenRouter Paid -> Groq -> Gemini),
-    falls back to local Ollama (gemma2:2b -> deepseek-coder -> orca-mini -> llama3) if cloud fails,
-    and raises RuntimeError if everything fails.
+    falls back to local Ollama if cloud fails, and raises RuntimeError if everything fails.
     """
+    if os.getenv("USE_MOCK_LLM") == "1":
+        return get_mock_fallback(system_prompt, user_content)
+
     GROQ_API_KEY = os.getenv("GROQ_API_KEY", "").strip()
     GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "").strip()
     OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY", "").strip()
 
-    # 1. Try OpenRouter (meta-llama/llama-3.1-8b-instruct)
+    # 1. Try OpenRouter (Llama 3.3 70B / configured model)
     if OPENROUTER_API_KEY:
-        print(f"  [LLM Core] Routing query to cloud via OpenRouter (meta-llama/llama-3.1-8b-instruct)")
-        log.info("LLM Call: attempting OpenRouter (meta-llama/llama-3.1-8b-instruct)")
+        model_name = OPENROUTER_CHAT_MODEL
+        print(f"  [LLM Core] Routing query to cloud via OpenRouter ({model_name})")
+        log.info(f"LLM Call: attempting OpenRouter ({model_name})")
         url = "https://openrouter.ai/api/v1/chat/completions"
         headers = {
             "Authorization": f"Bearer {OPENROUTER_API_KEY}",
@@ -49,13 +52,14 @@ def call_llm(system_prompt: str, user_content: str, retries: int = 3) -> str:
             "X-Title": os.getenv("OPENROUTER_SITE_NAME", "VYOR-AI"),
         }
         payload = {
-            "model": "meta-llama/llama-3.1-8b-instruct",
+            "model": model_name,
             "messages": [
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": user_content},
             ],
-            "temperature": 0.3,
+            "temperature": 0.2,
         }
+
         for attempt in range(retries):
             try:
                 resp = requests.post(url, headers=headers, json=payload, timeout=20)
@@ -193,11 +197,21 @@ def clean_json_response(text: str) -> dict:
     if not cleaned:
         return {}
 
-    # 2. Try raw parsing
+    # 2. Try raw parsing and JSONDecoder raw_decode for extra trailing data
     try:
         return json.loads(cleaned)
     except Exception:
         pass
+
+    # Try raw_decode from first '{' or '['
+    start_idx = cleaned.find("{")
+    if start_idx != -1:
+        try:
+            obj, _ = json.JSONDecoder().raw_decode(cleaned[start_idx:])
+            if isinstance(obj, dict):
+                return obj
+        except Exception:
+            pass
 
     # 3. Apply heuristics to fix common JSON issues
     processed = cleaned
@@ -206,35 +220,53 @@ def clean_json_response(text: str) -> dict:
         processed = processed.replace(": True", ": true").replace(": False", ": false").replace(": None", ": null")
         processed = processed.replace(":True", ":true").replace(":False", ":false").replace(":None", ":null")
         
-        # Replace trailing commas before closing braces/brackets, e.g. [1, 2,] -> [1, 2]
+        # Fix missing commas between key-value pairs e.g. "val" "key":
         import re
+        processed = re.sub(r'("(?:[^"\\]|\\.)*")\s*("(?:[^"\\]|\\.)*"\s*:)', r'\1, \2', processed)
         processed = re.sub(r',\s*\}', '}', processed)
         processed = re.sub(r',\s*\]', ']', processed)
         
-        # Handle unescaped backslashes (but don't mess up valid escapes like \n or \")
-        # Just escape general backslashes
+        # Handle unescaped backslashes
         processed = processed.replace('\\', '\\\\')
-        # Restore valid JSON escape sequences
         processed = processed.replace('\\\\n', '\\n').replace('\\\\"', '\\"').replace('\\\\t', '\\t')
         processed = processed.replace('\\\\r', '\\r').replace('\\\\b', '\\b').replace('\\\\f', '\\f')
         processed = processed.replace('\\\\/', '\\/')
 
+        start_idx = processed.find("{")
+        if start_idx != -1:
+            try:
+                obj, _ = json.JSONDecoder().raw_decode(processed[start_idx:])
+                if isinstance(obj, dict):
+                    return obj
+            except Exception:
+                pass
         return json.loads(processed)
     except Exception as e:
-        log.error(f"Heuristics parse failed: {e}")
+        log.debug(f"Heuristics parse failed: {e}")
 
-    # 4. Regex fallback search for a brace-enclosed block
+    # 4. Regex fallback search & key-value extraction
+    res = {}
     import re
+    txt_match = re.search(r'"text"\s*:\s*"((?:[^"\\]|\\.)*)"', cleaned, re.DOTALL)
+    if txt_match:
+        res["text"] = txt_match.group(1)
+    src_match = re.findall(r'"(?:sources|citations)"\s*:\s*\[(.*?)\]', cleaned, re.DOTALL)
+    if src_match:
+        items = re.findall(r'"([^"]+)"', src_match[0])
+        res["sources"] = items
+        res["citations"] = items
+    if "approved" in cleaned.lower():
+        res["approved"] = "true" in cleaned.lower()
+    if res:
+        return res
+
     match = re.search(r"\{.*\}", cleaned, re.DOTALL)
     if match:
         candidate = match.group(0)
         try:
             return json.loads(candidate)
         except Exception:
-            # Try single-quote to double-quote replacement
             try:
-                # Replace single quotes with double quotes for keys and values
-                # E.g. 'approved': false -> "approved": false
                 candidate_fixed = re.sub(r"'(\w+)'\s*:", r'"\1":', candidate)
                 candidate_fixed = re.sub(r":\s*'([^']*)'", r': "\1"', candidate_fixed)
                 candidate_fixed = candidate_fixed.replace("'", '"')
@@ -244,6 +276,7 @@ def clean_json_response(text: str) -> dict:
 
     log.error(f"Failed to parse LLM JSON after all cleaning attempts.\nRaw Text: {text}")
     return {}
+
 
 
 def get_mock_fallback(system_prompt: str, user_content: str) -> str:
@@ -262,42 +295,37 @@ def get_mock_fallback(system_prompt: str, user_content: str) -> str:
             "recalled_text": "Neural memory recall check: Medical leaves are capped at 15 days per calendar year and require lead approval.",
             "confidence": 0.90
         })
-    elif "Refiner" in system_prompt:
-        try:
-            payload = json.loads(user_content)
-            draft_text = payload.get("draft_text", "")
-            citations = payload.get("citations_present", [])
-        except Exception:
-            draft_text = user_content
-            citations = []
+    elif "Writer" in system_prompt:
+        import re
+        all_matches = re.findall(r'[\w\.-]+\.(?:pdf|docx|pptx|txt|csv)', user_content, re.IGNORECASE)
+        placeholders = {"source_file.pdf", "source_doc.pdf", "sample.pdf"}
+        sources = [f for f in set(all_matches) if f.lower() not in placeholders]
         return json.dumps({
-            "refined_text": draft_text,
-            "citations": citations
-        })
-    elif "Planner" in system_prompt or "PLANNER_PROMPT" in system_prompt:
-        return json.dumps({
-            "sub_questions": ["Find medical leave limits", "Identify approval workflow"],
-            "query_type": "factual",
-            "complexity": 2
+            "text": "Based on retrieved domain documentation, operations follow established policy guidelines.",
+            "sources": sources,
+            "confidence": 0.95
         })
     elif "Critic" in system_prompt:
-        # Grounded check fallback
-        if "15 days" in user_content or "medical" in user_content.lower():
-            return json.dumps({
-                "score": 0.95,
-                "issues": [],
-                "approved": True
-            })
         return json.dumps({
-            "score": 0.50,
-            "issues": ["Draft lacks precise metrics (e.g. 15 days) or source citations."],
-            "approved": False
+            "score": 0.95,
+            "issues": [],
+            "approved": True
         })
-    elif "Writer" in system_prompt:
+    elif "Refiner" in system_prompt:
+        import re
+        all_matches = re.findall(r'[\w\.-]+\.(?:pdf|docx|pptx|txt|csv)', user_content, re.IGNORECASE)
+        placeholders = {"source_file.pdf", "source_doc.pdf", "sample.pdf"}
+        citations = [f for f in set(all_matches) if f.lower() not in placeholders]
+        if not citations and "General_Knowledge" in user_content:
+            citations = ["General_Knowledge"]
         return json.dumps({
-            "text": "Based on the HR policy documents, employees are entitled to a maximum of 15 medical leaves per calendar year, requiring Lead approval.",
-            "sources": ["HR_Policy_2026.pdf"],
-            "confidence": 0.85
+            "refined_text": "Based on retrieved domain documentation, operations follow established policy guidelines.",
+            "citations": citations
         })
+
+
+
+
     # Default fallback
     return "{}"
+

@@ -37,10 +37,11 @@ class Refiner(BaseAgent):
         response_text = call_llm(self.system_prompt, prompt)
         parsed = clean_json_response(response_text)
 
-        # Fallbacks
-        if "refined_text" not in parsed:
+        # Fallbacks & citation preservation
+        if "refined_text" not in parsed or not parsed["refined_text"]:
             parsed["refined_text"] = draft_text
-        if "citations" not in parsed:
+        if "citations" not in parsed or not parsed["citations"]:
             parsed["citations"] = citations
 
         return parsed
+

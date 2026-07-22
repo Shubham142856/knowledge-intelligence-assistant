@@ -27,10 +27,12 @@ def run_vanilla_rag(query: str, top_k: int = 5) -> dict:
         payload = hit.payload or {}
         text = payload.get("text", "")
         src = payload.get("source", "unknown")
-        if text:
+        score = getattr(hit, "score", 0.0)
+        if text and score >= 0.65:
             context_chunks.append(f"Source: {src} | {text}")
             if src not in citations:
                 citations.append(src)
+
                 
     # 3. Call LLM with simple non-agentic prompt
     system_prompt = (

@@ -74,3 +74,13 @@ class VYORIntegrationInterface:
         
         print(" [Bridge]: Sending certified output packet back to UI layer.")
         return final_packet
+
+
+_default_interface = None
+
+def run_orchestrator(user_query: str) -> dict:
+    """Module-level helper function to run the default VYOR orchestrator pipeline."""
+    global _default_interface
+    if _default_interface is None:
+        _default_interface = VYORIntegrationInterface()
+    return _default_interface.run_orchestrator(user_query)

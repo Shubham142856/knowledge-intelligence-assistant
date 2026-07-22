@@ -1,0 +1,23 @@
+VYOR ENTERPRISE HR & IT POLICY MANUAL (2026)
+
+Section 1: Leave & Vacation Policy
+- Employees are entitled to a maximum of 15 medical leaves per calendar year. Team Lead approval is mandatory for any leave exceeding 2 consecutive days.
+- Annual paid vacation allowance is 20 days per year, accruing at 1.66 days per month worked.
+- Maternity leave is provided for up to 26 weeks of fully paid leave. Paternity leave is provided for 4 weeks.
+
+Section 2: Remote Work & Overtime Policy
+- Remote work contracts have a maximum duration of 12 consecutive months before requiring formal renewal by the HR Department.
+- Overtime work for senior engineers must be pre-approved by the Vice President of Engineering or the Engineering Operations Director. Standard overtime pay rate is 1.5x standard hourly wage.
+
+Section 3: Data Security & System Access
+- Customer database backups are encrypted at rest using AES-256-GCM encryption with keys managed in AWS KMS or GCP Cloud KMS.
+- Remote access to production systems requires multi-factor authentication (MFA) via hardware security keys (FIDO2) and access through an encrypted Zero-Trust Network Access (ZTNA) tunnel.
+- Customer records data retention policy mandates retaining data for 7 years post-contract termination, after which automatic GDPR-compliant permanent deletion occurs.
+
+Section 4: Equipment & Intellectual Property
+- Emergency hardware replacements in datacenters are handled 24/7 by the Datacenter Infrastructure Operations Team.
+- All intellectual property, code, algorithms, and documentation developed by contractors or full-time employees during their engagement belong exclusively to VYOR AI.
+- Standard onboarding duration for new engineering hires is 2 weeks, including mandatory security compliance training.
+
+Section 5: Code of Conduct & Compliance
+- Violating the code of conduct policy results in immediate disciplinary review, potential suspension, up to termination of employment without severance and legal escalation if applicable.
