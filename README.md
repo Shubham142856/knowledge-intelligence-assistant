@@ -186,3 +186,4 @@ vyor-ai/
 │   └── vector_db/                # Qdrant manager
 └── benchmarks/            # Complete verification suites
 ```
+## Router Agent\n\nVYOR-AI now includes a Smart Router that classifies queries as COMPANY_KNOWLEDGE or GENERAL_KNOWLEDGE.
