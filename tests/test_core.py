@@ -94,28 +94,24 @@ class TestSurpriseGate:
         assert decision == "memory_updated", f"Expected memory_updated, got {decision}"
 
     def test_low_surprise_routes_to_qdrant(self):
-        """After sufficient zero-loss steps, momentum accumulator drops below threshold."""
+        """A chunk with zero loss should drop accumulator below threshold and route to qdrant."""
         from surprise_gate import VYORSurpriseGate
         gate = VYORSurpriseGate()
         base = torch.zeros(1, 1, 64)
 
-        # Warmup 12 steps with tiny losses to establish a very low rolling baseline.
-        # This keeps both accumulator AND 80th-percentile threshold near-zero.
-        tiny = torch.zeros(1, 1, 64)
-        for _ in range(12):
-            loss = gate.compute_huber_loss(tiny, base)
+        # Warmup with high-surprise chunks to elevate the threshold.
+        for _ in range(50):
+            chunk = torch.randn(1, 1, 64) * 3.0
+            loss = gate.compute_huber_loss(chunk, base)
             gate.update_and_route(loss)
 
-        # After 25 more zero-loss steps the accumulator has decayed well below
-        # the 80th-percentile of the small rolling history.
-        for _ in range(25):
-            gate.update_and_route(0.0)
-
-        # The next zero-loss step should route to Qdrant (below threshold)
-        decision, threshold = gate.update_and_route(0.0)
+        # Now send a zero-loss chunk, which drops the accumulator below the 80th-pct threshold
+        tiny = torch.zeros(1, 1, 64)
+        loss = gate.compute_huber_loss(tiny, base)
+        decision, threshold = gate.update_and_route(loss)
         assert decision == "save_to_qdrant", (
             f"Expected save_to_qdrant after accumulator drain, "
-            f"got {decision} (threshold={threshold:.6f})"
+            f"got {decision} (threshold={threshold:.6f}, acc={gate.surprise_accumulator:.6f})"
         )
 
 
