@@ -1,0 +1,12 @@
+[tool.black]
+line-length = 120
+target-version = ["py310"]
+exclude = '''
+/(
+    \.venv
+  | __pycache__
+  | benchmarks
+  | data
+  | deploy
+)/
+'''

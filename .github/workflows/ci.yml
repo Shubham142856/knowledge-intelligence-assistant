@@ -1,0 +1,169 @@
+name: CI — Lint · Type · Test · Docker
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  PYTHON_VERSION: "3.10"
+  IMAGE_NAME: ghcr.io/${{ github.repository_owner }}/vyor-ai
+
+jobs:
+
+  # ══════════════════════════════
+  # 1. LINT — flake8 + black
+  # ══════════════════════════════
+  lint:
+    name: "Lint (flake8 + black)"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+
+      - name: Install lint tools
+        run: pip install flake8 black
+
+      - name: flake8
+        run: |
+          flake8 src/ orchestrator.py surprise_gate.py titans_memory.py \
+            --max-line-length=120 \
+            --extend-ignore=E203,W503 \
+            --statistics
+
+      - name: black (format check)
+        run: |
+          black --check --line-length=120 \
+            src/ orchestrator.py surprise_gate.py titans_memory.py
+
+  # ══════════════════════════════
+  # 2. TYPE CHECK — pyright
+  # ══════════════════════════════
+  type-check:
+    name: "Type Check (pyright)"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+
+      - name: Install deps + pyright
+        run: |
+          pip install -r requirements.txt
+          pip install pyright
+
+      - name: Run pyright
+        run: pyright src/ --pythonversion 3.10
+
+  # ══════════════════════════════
+  # 3. TESTS — pytest + mock LLM
+  # ══════════════════════════════
+  test:
+    name: "Tests (pytest, no API keys)"
+    runs-on: ubuntu-latest
+    needs: [lint]
+    env:
+      USE_MOCK_LLM: "1"
+      QDRANT_PATH: /tmp/qdrant_test_db
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt pytest pytest-cov
+
+      - name: Run tests
+        run: |
+          pytest tests/ \
+            --tb=short \
+            --cov=src \
+            --cov-report=term-missing \
+            --cov-report=xml:coverage.xml \
+            -v
+
+      - name: Upload coverage
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: coverage.xml
+
+  # ══════════════════════════════
+  # 4. DOCKER BUILD — verify
+  # ══════════════════════════════
+  docker-build:
+    name: "Docker Build (verify)"
+    runs-on: ubuntu-latest
+    needs: [test]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: docker/setup-buildx-action@v3
+
+      - name: Build image (no push)
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: false
+          tags: ${{ env.IMAGE_NAME }}:ci-${{ github.sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  # ══════════════════════════════
+  # 5. PUBLISH — ghcr.io on main
+  # ══════════════════════════════
+  docker-publish:
+    name: "Publish Image (ghcr.io)"
+    runs-on: ubuntu-latest
+    needs: [docker-build]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Login to ghcr.io
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: docker/setup-buildx-action@v3
+
+      - name: Docker metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.IMAGE_NAME }}
+          tags: |
+            type=sha,prefix=sha-
+            type=raw,value=latest,enable={{is_default_branch}}
+            type=semver,pattern={{version}}
+
+      - name: Build and push
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
