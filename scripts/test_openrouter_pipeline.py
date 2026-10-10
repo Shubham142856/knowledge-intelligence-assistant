@@ -2,9 +2,12 @@
 Full end-to-end test of the OpenRouter embedding pipeline.
 Tests: embedder → ingestion → Qdrant upsert → hybrid search
 """
+
 import sys, os
+
 sys.path.insert(0, ".")
 from dotenv import load_dotenv
+
 load_dotenv()
 
 print("=" * 60)
@@ -13,6 +16,7 @@ print("=" * 60)
 
 # 1. Check which backend is active
 from src.rag.ingestion import EMBEDDER_BACKEND, EMBEDDING_DIM, get_embedder
+
 print(f"\n[1] Embedder backend : {EMBEDDER_BACKEND}")
 print(f"    Embedding dim    : {EMBEDDING_DIM}")
 
@@ -32,6 +36,7 @@ print("    PASS")
 # 4. Encode a batch
 print("\n[4] Encoding batch of 3 sentences...")
 import numpy as np
+
 sentences = [
     "VYOR AI uses Titans Neural Memory for long-term context.",
     "Hybrid search combines dense vectors and BM25 sparse retrieval.",

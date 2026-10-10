@@ -10,6 +10,7 @@ import streamlit as st
 st_lottie = lambda *a, **kw: None  # type: ignore[assignment]  # stub; real import below
 try:
     from streamlit_lottie import st_lottie  # type: ignore[import-untyped]
+
     _LOTTIE_AVAIL = True
 except ImportError:
     _LOTTIE_AVAIL = False
@@ -17,6 +18,7 @@ except ImportError:
 # -- Optional: Shadcn UI components ----------------------------------------
 try:
     import streamlit_shadcn_ui as ui  # type: ignore[import-untyped]  # noqa: F401
+
     _SHADCN_AVAIL = True
 except ImportError:
     _SHADCN_AVAIL = False
@@ -26,7 +28,7 @@ API = os.getenv("API_URL", "http://localhost:8000")
 # -- Paths ------------------------------------------------------------------
 _ASSETS = Path(__file__).parent / "assets"
 _LOGO_PATH = _ASSETS / "logo.png"
-_CSS_PATH  = _ASSETS / "dashboard.css"
+_CSS_PATH = _ASSETS / "dashboard.css"
 _LOGO_EXISTS = _LOGO_PATH.exists()
 
 # -- Page config ------------------------------------------------------------
@@ -42,6 +44,7 @@ if _CSS_PATH.exists():
     _css = _CSS_PATH.read_text(encoding="utf-8")
     st.markdown(f"<style>{_css}</style>", unsafe_allow_html=True)
 
+
 # -- Lottie loader (cached) ------------------------------------------------
 @st.cache_data(show_spinner=False)
 def _load_lottie(url: str):
@@ -54,25 +57,23 @@ def _load_lottie(url: str):
 
 # -- Helper: confidence HTML -----------------------------------------------
 def _conf_html(conf: float) -> str:
-    pct  = conf * 100
+    pct = conf * 100
     tier = "hi" if conf >= 0.80 else ("md" if conf >= 0.65 else "lo")
     return (
         '<div class="conf-row">'
         '  <span class="conf-label-left">Confidence</span>'
         '  <div class="conf-track">'
         f'    <div class="conf-bar {tier}" style="width:{pct:.1f}%"></div>'
-        '  </div>'
+        "  </div>"
         f'  <span class="conf-val {tier}">{pct:.0f}%</span>'
-        '</div>'
+        "</div>"
     )
 
 
 # -- Helper: citations HTML ------------------------------------------------
 def _citations_html(citations: list) -> str:
     return "".join(
-        '<div class="cite-item">'
-        f'<span class="cite-idx">#{i+1}</span>'
-        f'<span class="cite-text">{c}</span></div>'
+        '<div class="cite-item">' f'<span class="cite-idx">#{i+1}</span>' f'<span class="cite-text">{c}</span></div>'
         for i, c in enumerate(citations)
     )
 
@@ -96,7 +97,7 @@ _NEURAL_SVG = (
     '<circle cx="18" cy="18" r="5" fill="none" stroke="#6366f1" stroke-width="1">'
     '<animate attributeName="r" values="5;13;5" dur="2.8s" repeatCount="indefinite"/>'
     '<animate attributeName="opacity" values="0.7;0;0.7" dur="2.8s" repeatCount="indefinite"/>'
-    '</circle>'
+    "</circle>"
     '<circle cx="58" cy="14" r="4.5" fill="#8b5cf6" opacity="0.85"/>'
     '<circle cx="58" cy="35" r="4.5" fill="#8b5cf6" opacity="0.70"/>'
     '<circle cx="58" cy="56" r="4.5" fill="#8b5cf6" opacity="0.80"/>'
@@ -106,8 +107,8 @@ _NEURAL_SVG = (
     '<animateMotion dur="2.4s" repeatCount="indefinite" '
     'path="M18,18 C36,18 40,35 58,35 C76,35 94,22 114,22"/>'
     '<animate attributeName="opacity" values="0;1;1;0" dur="2.4s" repeatCount="indefinite"/>'
-    '</circle>'
-    '</svg>'
+    "</circle>"
+    "</svg>"
 )
 
 # -- Hero pills HTML --------------------------------------------------------
@@ -117,44 +118,38 @@ _PILLS_HTML = (
     '<span class="pill pill-vio">Titans Neural Memory</span>'
     '<span class="pill pill-cyan">7-Mode RAG Stack</span>'
     '<span class="pill pill-grn">5-Layer Anti-Hallucination</span>'
-    '</div>'
+    "</div>"
 )
 
 _HERO_BODY = (
     '<div class="vyor-hero"><div class="vyor-hero-inner">'
     '<div class="vyor-hero-text">'
-    '<h1>VYOR AI - Knowledge Intelligence</h1>'
-    + _PILLS_HTML +
-    '</div>'
+    "<h1>VYOR AI - Knowledge Intelligence</h1>" + _PILLS_HTML + "</div>"
 )
 
 
 # -- Hero ------------------------------------------------------------------
 lottie_data = None
 if _LOTTIE_AVAIL:
-    lottie_data = _load_lottie(
-        "https://assets6.lottiefiles.com/packages/lf20_w51pcehl.json"
-    )
+    lottie_data = _load_lottie("https://assets6.lottiefiles.com/packages/lf20_w51pcehl.json")
 
 if _LOGO_EXISTS:
     _hero_col, _logo_col = st.columns([3, 1])
     with _hero_col:
-        st.markdown(_HERO_BODY + '</div></div>', unsafe_allow_html=True)
+        st.markdown(_HERO_BODY + "</div></div>", unsafe_allow_html=True)
     with _logo_col:
         st.image(str(_LOGO_PATH), width=140)
 
 elif _LOTTIE_AVAIL and lottie_data:
     _hero_col, _lottie_col = st.columns([4, 1])
     with _hero_col:
-        st.markdown(_HERO_BODY + '</div></div>', unsafe_allow_html=True)
+        st.markdown(_HERO_BODY + "</div></div>", unsafe_allow_html=True)
     with _lottie_col:
         st_lottie(lottie_data, height=90, key="hero_lottie")  # type: ignore[operator]
 
 else:
     st.markdown(
-        _HERO_BODY
-        + f'<div style="flex-shrink:0;opacity:0.75">{_NEURAL_SVG}</div>'
-        + '</div></div>',
+        _HERO_BODY + f'<div style="flex-shrink:0;opacity:0.75">{_NEURAL_SVG}</div>' + "</div></div>",
         unsafe_allow_html=True,
     )
 
@@ -178,8 +173,7 @@ with st.sidebar:
             )
     else:
         st.markdown(
-            '<div class="sidebar-logo-text">VYOR AI</div>'
-            '<div class="sidebar-logo-sub">Knowledge Intelligence</div>',
+            '<div class="sidebar-logo-text">VYOR AI</div>' '<div class="sidebar-logo-sub">Knowledge Intelligence</div>',
             unsafe_allow_html=True,
         )
 
@@ -205,8 +199,8 @@ with st.sidebar:
                 data = resp.json()
                 st.success(f"Processed: {data['filename']}")
                 c1, c2, c3 = st.columns(3)
-                c1.metric("Chunks",     data["total_chunks"])
-                c2.metric("Qdrant",     data["saved_to_qdrant"])
+                c1.metric("Chunks", data["total_chunks"])
+                c2.metric("Qdrant", data["saved_to_qdrant"])
                 c3.metric("Neural mem", data["memory_updated"])
             except requests.exceptions.ConnectionError:
                 st.error("Cannot reach API server. Is it running on port 8000?")
@@ -219,7 +213,7 @@ with st.sidebar:
 
     if st.button("System Health", use_container_width=True):
         try:
-            hresp  = requests.get(f"{API}/health", timeout=5)
+            hresp = requests.get(f"{API}/health", timeout=5)
             health = hresp.json()
             status = health.get("status", "unknown")
 
@@ -232,10 +226,13 @@ with st.sidebar:
             )
             for svc, state in health.get("services", {}).items():
                 cls = (
-                    "badge badge-up"   if state == "ok"      else
-                    "badge badge-down" if state == "error"   else
-                    "badge badge-ok"   if state == "standby" else
-                    "badge badge-unk"
+                    "badge badge-up"
+                    if state == "ok"
+                    else (
+                        "badge badge-down"
+                        if state == "error"
+                        else "badge badge-ok" if state == "standby" else "badge badge-unk"
+                    )
                 )
                 lbl = "UP" if state == "ok" else "DOWN" if state == "error" else state.upper()
                 rows += (
@@ -280,7 +277,7 @@ if prompt := st.chat_input("Ask a question about your documents ..."):
             '<div class="typing-wrap">'
             '<span class="t-label">Thinking</span>'
             '<div class="typing-dots"><span></span><span></span><span></span></div>'
-            '</div>',
+            "</div>",
             unsafe_allow_html=True,
         )
 
@@ -308,10 +305,10 @@ if prompt := st.chat_input("Ask a question about your documents ..."):
 
         typing_slot.empty()
 
-        answer     = data["answer"]
-        citations  = data.get("citations", [])
+        answer = data["answer"]
+        citations = data.get("citations", [])
         confidence = float(data.get("confidence", 0.75))
-        uncertain  = data.get("uncertainty", False)
+        uncertain = data.get("uncertainty", False)
 
         st.markdown(answer)
         st.markdown(_conf_html(confidence), unsafe_allow_html=True)
@@ -323,10 +320,12 @@ if prompt := st.chat_input("Ask a question about your documents ..."):
         if uncertain:
             st.warning("Low confidence - verify against source documents.")
 
-    st.session_state.messages.append({
-        "role":        "assistant",
-        "content":     answer,
-        "citations":   citations,
-        "confidence":  confidence,
-        "uncertainty": uncertain,
-    })
+    st.session_state.messages.append(
+        {
+            "role": "assistant",
+            "content": answer,
+            "citations": citations,
+            "confidence": confidence,
+            "uncertainty": uncertain,
+        }
+    )

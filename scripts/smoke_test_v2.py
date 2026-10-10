@@ -1,12 +1,15 @@
 """Smoke test for all new VYOR AI v2 API endpoints."""
+
 import requests
 import json
 
 BASE = "http://localhost:8000"
-SEP  = "=" * 50
+SEP = "=" * 50
+
 
 def section(title):
     print(f"\n{SEP}\n  {title}\n{SEP}")
+
 
 all_pass = True
 

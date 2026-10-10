@@ -32,8 +32,8 @@ EMBEDDER_BACKEND = os.getenv("EMBEDDER_BACKEND", "local").lower().strip()
 
 # Dimension map (authoritative — used by Qdrant and Titans LTM)
 EMBEDDING_DIMS = {
-    "local":       384,
-    "openrouter":  2048,
+    "local": 384,
+    "openrouter": 2048,
 }
 
 EMBEDDING_DIM: int = EMBEDDING_DIMS.get(EMBEDDER_BACKEND, 384)
@@ -43,6 +43,7 @@ _EMBEDDER = None
 
 
 # ── OpenRouter Embedder ────────────────────────────────────────────────────────
+
 
 class OpenRouterEmbedder:
     """
@@ -56,33 +57,32 @@ class OpenRouterEmbedder:
     Cost  : Free tier (0 tokens cost)
     """
 
-    DIM        = 2048
-    BATCH_SIZE = 64   # max texts per API call (stay within token limits)
+    DIM = 2048
+    BATCH_SIZE = 64  # max texts per API call (stay within token limits)
 
     def __init__(self) -> None:
         from dotenv import load_dotenv
+
         load_dotenv(override=True)
 
-        self.api_key  = os.getenv("OPENROUTER_API_KEY", "")
-        self.model    = os.getenv(
+        self.api_key = os.getenv("OPENROUTER_API_KEY", "")
+        self.model = os.getenv(
             "OPENROUTER_EMBED_MODEL",
             "nvidia/llama-nemotron-embed-vl-1b-v2:free",
         )
         self.site_url = os.getenv("OPENROUTER_SITE_URL", "http://localhost:8000")
         self.site_name = os.getenv("OPENROUTER_SITE_NAME", "VYOR-AI")
-        self.url      = "https://openrouter.ai/api/v1/embeddings"
+        self.url = "https://openrouter.ai/api/v1/embeddings"
 
         if not self.api_key:
             raise ValueError(
-                "OPENROUTER_API_KEY is not set. "
-                "Add it to your .env file or set it as an environment variable."
+                "OPENROUTER_API_KEY is not set. " "Add it to your .env file or set it as an environment variable."
             )
 
         import requests  # imported lazily so local mode doesn't require requests
+
         self._requests = requests
-        log.info(
-            f"OpenRouterEmbedder initialised — model={self.model}, dim={self.DIM}"
-        )
+        log.info(f"OpenRouterEmbedder initialised — model={self.model}, dim={self.DIM}")
 
     def _call_api(self, texts: list[str], retries: int = 3) -> list[list[float]]:
         """
@@ -91,14 +91,14 @@ class OpenRouterEmbedder:
         Retries up to `retries` times on transient HTTP errors.
         """
         headers = {
-            "Authorization":    f"Bearer {self.api_key}",
-            "Content-Type":     "application/json",
-            "HTTP-Referer":     self.site_url,
-            "X-Title":          self.site_name,
+            "Authorization": f"Bearer {self.api_key}",
+            "Content-Type": "application/json",
+            "HTTP-Referer": self.site_url,
+            "X-Title": self.site_name,
         }
         payload = {
-            "model":           self.model,
-            "input":           texts,
+            "model": self.model,
+            "input": texts,
             "encoding_format": "float",
         }
 
@@ -116,13 +116,11 @@ class OpenRouterEmbedder:
                     data.sort(key=lambda x: x["index"])
                     return [item["embedding"] for item in data]
                 elif resp.status_code == 429:
-                    wait = 2 ** attempt
+                    wait = 2**attempt
                     log.warning(f"OpenRouter rate limit (429). Retrying in {wait}s...")
                     time.sleep(wait)
                 else:
-                    log.error(
-                        f"OpenRouter API error {resp.status_code}: {resp.text[:200]}"
-                    )
+                    log.error(f"OpenRouter API error {resp.status_code}: {resp.text[:200]}")
                     resp.raise_for_status()
             except self._requests.exceptions.Timeout:
                 log.warning(f"OpenRouter timeout on attempt {attempt+1}/{retries}")
@@ -181,16 +179,16 @@ class OpenRouterEmbedder:
         """
         headers = {
             "Authorization": f"Bearer {self.api_key}",
-            "Content-Type":  "application/json",
-            "HTTP-Referer":  self.site_url,
-            "X-Title":       self.site_name,
+            "Content-Type": "application/json",
+            "HTTP-Referer": self.site_url,
+            "X-Title": self.site_name,
         }
         payload = {
-            "model":           self.model,
+            "model": self.model,
             "input": [
                 {
                     "content": [
-                        {"type": "text",      "text": text},
+                        {"type": "text", "text": text},
                         {"type": "image_url", "image_url": {"url": image_url}},
                     ]
                 }
@@ -209,6 +207,7 @@ class OpenRouterEmbedder:
 
 # ── get_embedder() — singleton factory ────────────────────────────────────────
 
+
 def get_embedder():
     """
     Return the module-level singleton embedder.
@@ -225,6 +224,7 @@ def get_embedder():
             log.info(f"OpenRouter embedder ready. dim={EMBEDDING_DIM}")
         else:
             from sentence_transformers import SentenceTransformer
+
             log.info("Loading sentence-transformer model all-MiniLM-L6-v2 ...")
             _EMBEDDER = SentenceTransformer("all-MiniLM-L6-v2")
             log.info("Local embedder ready.")
@@ -232,6 +232,7 @@ def get_embedder():
 
 
 # ── DocumentIngestor ──────────────────────────────────────────────────────────
+
 
 class DocumentIngestor:
     """
@@ -243,9 +244,9 @@ class DocumentIngestor:
     Embedding dim        : 384  (local) | 2048 (openrouter)
     """
 
-    CHUNK_SIZE    = 500
+    CHUNK_SIZE = 500
     CHUNK_OVERLAP = 50
-    SUPPORTED     = {"pdf", "docx", "pptx", "csv", "txt", "md"}
+    SUPPORTED = {"pdf", "docx", "pptx", "csv", "txt", "md"}
 
     def __init__(self) -> None:
         self.embedder = get_embedder()
@@ -265,9 +266,7 @@ class DocumentIngestor:
             for page in reader.pages:
                 text += (page.extract_text() or "") + "\n"
         if len(text.strip()) < 50:
-            raise ValueError(
-                f"PDF appears to be scanned/image-only or empty: {path}"
-            )
+            raise ValueError(f"PDF appears to be scanned/image-only or empty: {path}")
         return text
 
     def parse_docx(self, path: str) -> str:
@@ -310,17 +309,15 @@ class DocumentIngestor:
         """
         ext = Path(path).suffix.lstrip(".").lower()
         if ext not in self.SUPPORTED:
-            raise ValueError(
-                f"Unsupported file type '.{ext}'. Allowed: {self.SUPPORTED}"
-            )
+            raise ValueError(f"Unsupported file type '.{ext}'. Allowed: {self.SUPPORTED}")
 
         parsers = {
-            "pdf":  self.parse_pdf,
+            "pdf": self.parse_pdf,
             "docx": self.parse_docx,
             "pptx": self.parse_pptx,
-            "csv":  self.parse_csv,
-            "txt":  self.parse_txt,
-            "md":   self.parse_txt,
+            "csv": self.parse_csv,
+            "txt": self.parse_txt,
+            "md": self.parse_txt,
         }
 
         log.info(f"Parsing {Path(path).name} [backend={EMBEDDER_BACKEND}] ...")

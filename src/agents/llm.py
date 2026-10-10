@@ -67,7 +67,7 @@ def call_llm(system_prompt: str, user_content: str, retries: int = 3) -> str:
                     content = resp.json()["choices"][0]["message"]["content"]
                     return content.strip()
                 elif resp.status_code == 429:
-                    wait = 2 ** attempt
+                    wait = 2**attempt
                     log.warning(f"OpenRouter 429. Retrying in {wait}s...")
                     time.sleep(wait)
                 else:
@@ -100,7 +100,7 @@ def call_llm(system_prompt: str, user_content: str, retries: int = 3) -> str:
                     content = resp.json()["choices"][0]["message"]["content"]
                     return content.strip()
                 elif resp.status_code == 429:
-                    wait = 2 ** attempt
+                    wait = 2**attempt
                     log.warning(f"Groq 429. Retrying in {wait}s...")
                     time.sleep(wait)
                 else:
@@ -117,15 +117,9 @@ def call_llm(system_prompt: str, user_content: str, retries: int = 3) -> str:
         headers = {"Content-Type": "application/json"}
         # Format matching Gemini API
         payload = {
-            "systemInstruction": {
-                "parts": [{"text": system_prompt}]
-            },
-            "contents": [
-                {"role": "user", "parts": [{"text": user_content}]}
-            ],
-            "generationConfig": {
-                "temperature": 0.3
-            }
+            "systemInstruction": {"parts": [{"text": system_prompt}]},
+            "contents": [{"role": "user", "parts": [{"text": user_content}]}],
+            "generationConfig": {"temperature": 0.3},
         }
         for attempt in range(retries):
             try:
@@ -136,7 +130,7 @@ def call_llm(system_prompt: str, user_content: str, retries: int = 3) -> str:
                     content = res_json["candidates"][0]["content"]["parts"][0]["text"]
                     return content.strip()
                 elif resp.status_code == 429:
-                    wait = 2 ** attempt
+                    wait = 2**attempt
                     log.warning(f"Gemini 429. Retrying in {wait}s...")
                     time.sleep(wait)
                 else:
@@ -183,7 +177,7 @@ def clean_json_response(text: str) -> dict:
     and parse as dictionary. Includes robust heuristics to fix common JSON syntax errors.
     """
     cleaned = text.strip()
-    
+
     # 1. Remove markdown wrappers
     if cleaned.startswith("```"):
         lines = cleaned.splitlines()
@@ -219,18 +213,19 @@ def clean_json_response(text: str) -> dict:
         # Replace python style Booleans/None if LLM generated them
         processed = processed.replace(": True", ": true").replace(": False", ": false").replace(": None", ": null")
         processed = processed.replace(":True", ":true").replace(":False", ":false").replace(":None", ":null")
-        
+
         # Fix missing commas between key-value pairs e.g. "val" "key":
         import re
-        processed = re.sub(r'("(?:[^"\\]|\\.)*")\s*("(?:[^"\\]|\\.)*"\s*:)', r'\1, \2', processed)
-        processed = re.sub(r',\s*\}', '}', processed)
-        processed = re.sub(r',\s*\]', ']', processed)
-        
+
+        processed = re.sub(r'("(?:[^"\\]|\\.)*")\s*("(?:[^"\\]|\\.)*"\s*:)', r"\1, \2", processed)
+        processed = re.sub(r",\s*\}", "}", processed)
+        processed = re.sub(r",\s*\]", "]", processed)
+
         # Handle unescaped backslashes
-        processed = processed.replace('\\', '\\\\')
-        processed = processed.replace('\\\\n', '\\n').replace('\\\\"', '\\"').replace('\\\\t', '\\t')
-        processed = processed.replace('\\\\r', '\\r').replace('\\\\b', '\\b').replace('\\\\f', '\\f')
-        processed = processed.replace('\\\\/', '\\/')
+        processed = processed.replace("\\", "\\\\")
+        processed = processed.replace("\\\\n", "\\n").replace('\\\\"', '\\"').replace("\\\\t", "\\t")
+        processed = processed.replace("\\\\r", "\\r").replace("\\\\b", "\\b").replace("\\\\f", "\\f")
+        processed = processed.replace("\\\\/", "\\/")
 
         start_idx = processed.find("{")
         if start_idx != -1:
@@ -247,6 +242,7 @@ def clean_json_response(text: str) -> dict:
     # 4. Regex fallback search & key-value extraction
     res = {}
     import re
+
     txt_match = re.search(r'"text"\s*:\s*"((?:[^"\\]|\\.)*)"', cleaned, re.DOTALL)
     if txt_match:
         res["text"] = txt_match.group(1)
@@ -278,7 +274,6 @@ def clean_json_response(text: str) -> dict:
     return {}
 
 
-
 def get_mock_fallback(system_prompt: str, user_content: str) -> str:
     """
     Offline/Fallback mock responses when API is down or key is missing.
@@ -286,46 +281,43 @@ def get_mock_fallback(system_prompt: str, user_content: str) -> str:
     """
     if "Router" in system_prompt:
         route = "ltm" if any(x in user_content.lower() for x in ["hi", "hello", "hey", "remember"]) else "complex"
-        return json.dumps({
-            "route": route,
-            "reason": f"Mock routing to {route} based on query text."
-        })
+        return json.dumps({"route": route, "reason": f"Mock routing to {route} based on query text."})
     elif "MemoryAgent" in system_prompt:
-        return json.dumps({
-            "recalled_text": "Neural memory recall check: Medical leaves are capped at 15 days per calendar year and require lead approval.",
-            "confidence": 0.90
-        })
+        return json.dumps(
+            {
+                "recalled_text": "Neural memory recall check: Medical leaves are capped at 15 days per calendar year and require lead approval.",
+                "confidence": 0.90,
+            }
+        )
     elif "Writer" in system_prompt:
         import re
-        all_matches = re.findall(r'[\w\.-]+\.(?:pdf|docx|pptx|txt|csv)', user_content, re.IGNORECASE)
+
+        all_matches = re.findall(r"[\w\.-]+\.(?:pdf|docx|pptx|txt|csv)", user_content, re.IGNORECASE)
         placeholders = {"source_file.pdf", "source_doc.pdf", "sample.pdf"}
         sources = [f for f in set(all_matches) if f.lower() not in placeholders]
-        return json.dumps({
-            "text": "Based on retrieved domain documentation, operations follow established policy guidelines.",
-            "sources": sources,
-            "confidence": 0.95
-        })
+        return json.dumps(
+            {
+                "text": "Based on retrieved domain documentation, operations follow established policy guidelines.",
+                "sources": sources,
+                "confidence": 0.95,
+            }
+        )
     elif "Critic" in system_prompt:
-        return json.dumps({
-            "score": 0.95,
-            "issues": [],
-            "approved": True
-        })
+        return json.dumps({"score": 0.95, "issues": [], "approved": True})
     elif "Refiner" in system_prompt:
         import re
-        all_matches = re.findall(r'[\w\.-]+\.(?:pdf|docx|pptx|txt|csv)', user_content, re.IGNORECASE)
+
+        all_matches = re.findall(r"[\w\.-]+\.(?:pdf|docx|pptx|txt|csv)", user_content, re.IGNORECASE)
         placeholders = {"source_file.pdf", "source_doc.pdf", "sample.pdf"}
         citations = [f for f in set(all_matches) if f.lower() not in placeholders]
         if not citations and "General_Knowledge" in user_content:
             citations = ["General_Knowledge"]
-        return json.dumps({
-            "refined_text": "Based on retrieved domain documentation, operations follow established policy guidelines.",
-            "citations": citations
-        })
-
-
-
+        return json.dumps(
+            {
+                "refined_text": "Based on retrieved domain documentation, operations follow established policy guidelines.",
+                "citations": citations,
+            }
+        )
 
     # Default fallback
     return "{}"
-

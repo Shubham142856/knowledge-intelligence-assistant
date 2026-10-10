@@ -3,6 +3,7 @@ from titans_memory import VYORNeuralBrain
 from surprise_gate import VYORSurpriseGate
 from orchestrator import VYOROrchestrator
 
+
 class VYORIntegrationInterface:
     def __init__(self, partner_qdrant_search_fn=None, partner_qdrant_insert_fn=None, dim=384):
         """
@@ -11,15 +12,15 @@ class VYORIntegrationInterface:
         partner_qdrant_insert_fn: Kal Partner ka Qdrant Data Insertion function yahan pass hoga.
         """
         print("[Bridge Interface]: Initializing Core VYOR AI System Connection...")
-        
+
         # 1. Day 1 & Day 2 Components Initalize
         self.brain = VYORNeuralBrain(dim=dim)
         self.gate = VYORSurpriseGate()
-        
+
         # 2. External Database Connectors Bind (Kal use honge)
         self.partner_insert = partner_qdrant_insert_fn if partner_qdrant_insert_fn else self._fallback_insert
         self.partner_search = partner_qdrant_search_fn
-        
+
         # 3. Day 3 & 4 Orchestrator Connect
         # Hum orchestrator ko partner ka search function pass kar dete hain
         self.orchestrator = VYOROrchestrator(retrieval_fn=self.partner_search)
@@ -38,17 +39,17 @@ class VYORIntegrationInterface:
         Surprise Gate loss check karega aur dynamic routing decision lega.
         """
         print(f"\n [Bridge]: Processing incoming chunk... Metadata: '{raw_text_meta[:30]}...'")
-        
+
         # Create a blank memory base matrix for loss evaluation
         memory_base = torch.zeros_like(chunk_tensor)
-        
+
         # 1. Compute Huber Loss via Surprise Gate
         loss = self.gate.compute_huber_loss(chunk_tensor, memory_base)
-        
+
         # 2. Get Dynamic Threshold Routing Decision
         decision, threshold = self.gate.update_and_route(loss)
         print(f"[Gate Evaluation] Loss: {loss:.4f} | Dynamic Threshold: {threshold:.4f}")
-        
+
         # 3. Execution Routing
         if decision == "memory_updated":
             print("[Route -> LTM]: High Surprise Detected! Updating Titans Neural Brain weights...")
@@ -68,19 +69,20 @@ class VYORIntegrationInterface:
         Yeh multi-agent debate loop chalakar final clean dictionary return karega.
         """
         print(f"\n [Bridge]: User query received -> '{user_query}'")
-        
+
         # Trigger Day 3 & 4 multi-agent flow
         final_packet = self.orchestrator.execute_query(user_query)
-        
+
         print(" [Bridge]: Sending certified output packet back to UI layer.")
         return final_packet
 
 
 _default_interface = None
 
+
 def run_orchestrator(user_query: str) -> dict:
     """Module-level helper function to run the default VYOR orchestrator pipeline."""
     global _default_interface
     if _default_interface is None:
         _default_interface = VYORIntegrationInterface()
-    return _default_interface.run_orchestrator(user_query)
+    return _default_interface.run_orchestrator(user_query)

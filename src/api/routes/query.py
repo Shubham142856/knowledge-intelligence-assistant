@@ -28,24 +28,24 @@ async def handle_query(query: str, session_id: str = None) -> dict:
     """
     if not query or not query.strip():
         return {
-            "answer":      "Please enter a question.",
-            "citations":   [],
-            "confidence":  0.0,
+            "answer": "Please enter a question.",
+            "citations": [],
+            "confidence": 0.0,
             "uncertainty": False,
-            "session_id":  session_id,
+            "session_id": session_id,
         }
 
     log.info(f"Query | session={session_id} | '{query[:80]}' ...")
 
     result = run_orchestrator(query)
 
-    confidence  = float(result.get("confidence", 0.75))
+    confidence = float(result.get("confidence", 0.75))
     uncertainty = result.get("uncertainty", confidence < UNCERTAINTY_THRESHOLD)
 
     return {
-        "answer":      result["answer"],
-        "citations":   result.get("citations", []),
-        "confidence":  confidence,
+        "answer": result["answer"],
+        "citations": result.get("citations", []),
+        "confidence": confidence,
         "uncertainty": uncertainty,
-        "session_id":  session_id,
+        "session_id": session_id,
     }

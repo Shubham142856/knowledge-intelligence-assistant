@@ -17,7 +17,7 @@ log = logging.getLogger("vyor_ai.titans_memory")
 try:
     from src.rag.ingestion import EMBEDDING_DIM as _EMBED_DIM
 except ImportError:
-    _EMBED_DIM = 384   # fallback if imported standalone
+    _EMBED_DIM = 384  # fallback if imported standalone
 
 
 class VYORNeuralBrain(nn.Module):
@@ -33,16 +33,13 @@ class VYORNeuralBrain(nn.Module):
         super().__init__()
         self.dim = dim
         self.chunk_size = chunk_size
-        
+
         # Load variant configuration from environment
         variant = os.getenv("TITANS_VARIANT", "MAC").upper().strip()
         num_p_tokens = int(os.getenv("TITANS_PERSISTENT_TOKENS", "8"))
-        
+
         self.core = TitansMemoryCore(
-            dim=dim,
-            variant=variant,
-            num_persistent_tokens=num_p_tokens,
-            chunk_size=chunk_size
+            dim=dim, variant=variant, num_persistent_tokens=num_p_tokens, chunk_size=chunk_size
         )
         log.info(f"VYORNeuralBrain bridge initialized utilizing core variant: {variant}")
 

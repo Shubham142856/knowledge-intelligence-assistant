@@ -50,11 +50,10 @@ async def handle_upload(file: UploadFile = File(...)) -> dict:
     content = await file.read()
     if len(content) == 0:
         raise HTTPException(status_code=400, detail="Empty file uploaded.")
-        
+
     if len(content) > MAX_FILE_SIZE:
         raise HTTPException(
-            status_code=413,
-            detail=f"File too large ({len(content) / (1024*1024):.1f} MB). Max allowed is 200 MB."
+            status_code=413, detail=f"File too large ({len(content) / (1024*1024):.1f} MB). Max allowed is 200 MB."
         )
 
     # ── Write to tempfile ─────────────────────────────────────────────────────
@@ -64,16 +63,16 @@ async def handle_upload(file: UploadFile = File(...)) -> dict:
 
     try:
         # ── Ingest ───────────────────────────────────────────────────────────
-        ingestor         = DocumentIngestor()
+        ingestor = DocumentIngestor()
         chunks, embeddings = ingestor.ingest(tmp_path)
 
-        qdrant       = QdrantManager()
-        saved_count  = 0
+        qdrant = QdrantManager()
+        saved_count = 0
         memory_count = 0
 
         # ── Route each chunk via Contract 1 ───────────────────────────────────
-        qdrant_chunks: list[str]  = []
-        qdrant_embeddings         = []
+        qdrant_chunks: list[str] = []
+        qdrant_embeddings = []
 
         for chunk, emb in zip(chunks, embeddings):
             decision = process_incoming_chunk(chunk, emb.tolist())
@@ -93,17 +92,14 @@ async def handle_upload(file: UploadFile = File(...)) -> dict:
         if qdrant_chunks:
             qdrant.save(qdrant_chunks, qdrant_embeddings, file.filename)
 
-        log.info(
-            f"Upload '{file.filename}': {len(chunks)} chunks -> "
-            f"{saved_count} Qdrant, {memory_count} LTM"
-        )
+        log.info(f"Upload '{file.filename}': {len(chunks)} chunks -> " f"{saved_count} Qdrant, {memory_count} LTM")
 
         return {
-            "status":          "success",
-            "filename":        file.filename,
-            "total_chunks":    len(chunks),
+            "status": "success",
+            "filename": file.filename,
+            "total_chunks": len(chunks),
             "saved_to_qdrant": saved_count,
-            "memory_updated":  memory_count,
+            "memory_updated": memory_count,
         }
 
     except ValueError as exc:

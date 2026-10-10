@@ -1,13 +1,15 @@
 """
 Probe OpenRouter NVIDIA Nemotron Embed to discover output dimension.
 """
+
 import requests, json, os
 from dotenv import load_dotenv
+
 load_dotenv()
 
 API_KEY = os.getenv("OPENROUTER_API_KEY")
-MODEL   = os.getenv("OPENROUTER_EMBED_MODEL", "nvidia/llama-nemotron-embed-vl-1b-v2:free")
-URL     = "https://openrouter.ai/api/v1/embeddings"
+MODEL = os.getenv("OPENROUTER_EMBED_MODEL", "nvidia/llama-nemotron-embed-vl-1b-v2:free")
+URL = "https://openrouter.ai/api/v1/embeddings"
 
 print(f"Model : {MODEL}")
 print(f"Key   : {API_KEY[:20]}...")
@@ -17,15 +19,17 @@ resp = requests.post(
     url=URL,
     headers={
         "Authorization": f"Bearer {API_KEY}",
-        "Content-Type":  "application/json",
-        "HTTP-Referer":  "http://localhost:8000",
-        "X-Title":       "VYOR-AI",
+        "Content-Type": "application/json",
+        "HTTP-Referer": "http://localhost:8000",
+        "X-Title": "VYOR-AI",
     },
-    data=json.dumps({
-        "model":           MODEL,
-        "input":           ["Hello, this is a test embedding from VYOR AI."],
-        "encoding_format": "float",
-    }),
+    data=json.dumps(
+        {
+            "model": MODEL,
+            "input": ["Hello, this is a test embedding from VYOR AI."],
+            "encoding_format": "float",
+        }
+    ),
     timeout=30,
 )
 

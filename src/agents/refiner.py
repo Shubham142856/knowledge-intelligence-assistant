@@ -28,10 +28,7 @@ class Refiner(BaseAgent):
         draft_text = input_data.get("text", "")
         citations = input_data.get("citations", [])
 
-        input_payload = {
-            "draft_text": draft_text,
-            "citations_present": citations
-        }
+        input_payload = {"draft_text": draft_text, "citations_present": citations}
 
         prompt = self.build_prompt(json.dumps(input_payload, indent=2))
         response_text = call_llm(self.system_prompt, prompt)
@@ -44,4 +41,3 @@ class Refiner(BaseAgent):
             parsed["citations"] = citations
 
         return parsed
-

@@ -27,19 +27,21 @@ def extract_metadata_and_text(path: Path) -> tuple[str, str | None]:
             with open(path, encoding="utf-8", errors="ignore") as f:
                 data = json.load(f)
             doc_id = data.get("dataset_doc_uuid", "")
-            
+
             # Flatten string fields
             texts = []
+
             def collect(obj):
                 if isinstance(obj, str) and len(obj.strip()) > 10:
                     texts.append(obj.strip())
                 elif isinstance(obj, dict):
                     for k, v in obj.items():
-                        if k not in {"dataset_doc_uuid", "repo", "pr_number"}: # skip metadata
+                        if k not in {"dataset_doc_uuid", "repo", "pr_number"}:  # skip metadata
                             collect(v)
                 elif isinstance(obj, list):
                     for item in obj:
                         collect(item)
+
             collect(data)
             return doc_id, "\n\n".join(texts) if texts else None
 
@@ -95,7 +97,9 @@ def get_smart_limit_files(data_dir: Path, max_questions: int) -> list[Path]:
     return files
 
 
-def ingest(data_dir: str = "data/enterprise_rag_bench", limit: int | None = None, smart_limit: int | None = None) -> int:
+def ingest(
+    data_dir: str = "data/enterprise_rag_bench", limit: int | None = None, smart_limit: int | None = None
+) -> int:
     from src.rag.ingestion import DocumentIngestor
     from src.vector_db.qdrant_manager import QdrantManager
     from src.integration_interface import process_incoming_chunk
@@ -118,7 +122,7 @@ def ingest(data_dir: str = "data/enterprise_rag_bench", limit: int | None = None
     print(f"Found {len(all_files)} source files to ingest...")
 
     ingestor = DocumentIngestor()
-    qdrant   = QdrantManager()
+    qdrant = QdrantManager()
     total_saved = 0
     total_files = 0
 
@@ -129,10 +133,9 @@ def ingest(data_dir: str = "data/enterprise_rag_bench", limit: int | None = None
 
         try:
             import tempfile
+
             suffix = file_path.suffix if file_path.suffix in {".txt", ".md"} else ".txt"
-            with tempfile.NamedTemporaryFile(
-                mode="w", suffix=suffix, delete=False, encoding="utf-8"
-            ) as tmp:
+            with tempfile.NamedTemporaryFile(mode="w", suffix=suffix, delete=False, encoding="utf-8") as tmp:
                 tmp.write(text)
                 tmp_path = tmp.name
 
@@ -163,9 +166,9 @@ def ingest(data_dir: str = "data/enterprise_rag_bench", limit: int | None = None
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Ingest EnterpriseRAG-Bench into Qdrant")
     parser.add_argument("--data-dir", default="data/enterprise_rag_bench")
-    parser.add_argument("--limit", type=int, default=None,
-                        help="Max number of files to ingest alphabetically")
-    parser.add_argument("--smart-limit", type=int, default=None,
-                        help="Ingest only files referenced by the first N basic questions")
+    parser.add_argument("--limit", type=int, default=None, help="Max number of files to ingest alphabetically")
+    parser.add_argument(
+        "--smart-limit", type=int, default=None, help="Ingest only files referenced by the first N basic questions"
+    )
     args = parser.parse_args()
     ingest(args.data_dir, args.limit, args.smart_limit)

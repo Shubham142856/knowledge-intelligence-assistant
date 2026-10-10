@@ -40,6 +40,7 @@ log = logging.getLogger("vyor_ai.qdrant")
 
 # ── Exact Fact SQLite side-store ───────────────────────────────────────────────
 
+
 class ExactFactStore:
     """
     SQLite side-store for verbatim exact-match retrieval.
@@ -66,12 +67,8 @@ class ExactFactStore:
                 created_at  TEXT NOT NULL
             )
         """)
-        self.conn.execute(
-            "CREATE INDEX IF NOT EXISTS idx_source ON chunks(source)"
-        )
-        self.conn.execute(
-            "CREATE INDEX IF NOT EXISTS idx_created_at ON chunks(created_at)"
-        )
+        self.conn.execute("CREATE INDEX IF NOT EXISTS idx_source ON chunks(source)")
+        self.conn.execute("CREATE INDEX IF NOT EXISTS idx_created_at ON chunks(created_at)")
         self.conn.commit()
 
     def insert(
@@ -103,16 +100,11 @@ class ExactFactStore:
                LIMIT ?""",
             (f"%{keyword}%", limit),
         ).fetchall()
-        return [
-            {"text": r[0], "source": r[1], "doc_id": r[2], "created_at": r[3]}
-            for r in rows
-        ]
+        return [{"text": r[0], "source": r[1], "doc_id": r[2], "created_at": r[3]} for r in rows]
 
     def delete_by_source(self, source: str) -> int:
         """Delete all chunks from a given source (GDPR forget)."""
-        cur = self.conn.execute(
-            "DELETE FROM chunks WHERE source = ?", (source,)
-        )
+        cur = self.conn.execute("DELETE FROM chunks WHERE source = ?", (source,))
         self.conn.commit()
         count = cur.rowcount
         log.info(f"ExactFactStore: deleted {count} rows for source='{source}'")
@@ -120,16 +112,13 @@ class ExactFactStore:
 
     def list_sources(self) -> list[dict]:
         """Return all indexed sources with chunk count and last upload time."""
-        rows = self.conn.execute(
-            """SELECT source, COUNT(*) as chunks, MAX(created_at) as last_seen
-               FROM chunks GROUP BY source ORDER BY last_seen DESC"""
-        ).fetchall()
-        return [
-            {"source": r[0], "chunks": r[1], "last_seen": r[2]} for r in rows
-        ]
+        rows = self.conn.execute("""SELECT source, COUNT(*) as chunks, MAX(created_at) as last_seen
+               FROM chunks GROUP BY source ORDER BY last_seen DESC""").fetchall()
+        return [{"source": r[0], "chunks": r[1], "last_seen": r[2]} for r in rows]
 
 
 # ── QdrantManager ──────────────────────────────────────────────────────────────
+
 
 class QdrantManager:
     """
@@ -148,14 +137,10 @@ class QdrantManager:
     """
 
     # Dynamic based on active embedder backend
-    COLLECTION  = (
-        "vyor_knowledge_base_2048"
-        if EMBEDDER_BACKEND == "openrouter"
-        else "vyor_knowledge_base"
-    )
-    VECTOR_DIM  = EMBEDDING_DIM   # 384 (local) | 2048 (openrouter)
-    RRF_K       = 60
-    TIME_DECAY  = 0.05
+    COLLECTION = "vyor_knowledge_base_2048" if EMBEDDER_BACKEND == "openrouter" else "vyor_knowledge_base"
+    VECTOR_DIM = EMBEDDING_DIM  # 384 (local) | 2048 (openrouter)
+    RRF_K = 60
+    TIME_DECAY = 0.05
 
     _client_instance = None
 
@@ -171,15 +156,15 @@ class QdrantManager:
                 QdrantManager._client_instance = QdrantClient(url=url, timeout=20)
                 log.info(f"Qdrant singleton connected (remote): {url}")
 
-        self.client   = QdrantManager._client_instance
+        self.client = QdrantManager._client_instance
         self.embedder = get_embedder()
-        self._corpus:  list[str] = []
-        self._meta:    list[dict] = []       # parallel metadata for BM25 corpus
-        self._bm25:    Optional[BM25Okapi] = None
+        self._corpus: list[str] = []
+        self._meta: list[dict] = []  # parallel metadata for BM25 corpus
+        self._bm25: Optional[BM25Okapi] = None
         self._ensure_collection()
 
         # Exact fact SQLite side-store
-        db_dir  = os.getenv("QDRANT_PATH", "data/qdrant_db")
+        db_dir = os.getenv("QDRANT_PATH", "data/qdrant_db")
         db_path = os.path.join(db_dir, "exact_facts.db")
         self.exact_store = ExactFactStore(db_path)
 
@@ -188,6 +173,7 @@ class QdrantManager:
         if os.getenv("USE_RERANKER", "true").lower() == "true":
             try:
                 from sentence_transformers import CrossEncoder
+
                 log.info("Loading Cross-Encoder reranker cross-encoder/ms-marco-MiniLM-L-6-v2...")
                 self.reranker = CrossEncoder("cross-encoder/ms-marco-MiniLM-L-6-v2")
                 log.info("Cross-Encoder reranker ready.")
@@ -219,10 +205,10 @@ class QdrantManager:
 
     def save(
         self,
-        chunks:     list[str],
-        embeddings,                 # np.ndarray (N, 384)
-        source:     str,
-        doc_id:     str = "",
+        chunks: list[str],
+        embeddings,  # np.ndarray (N, 384)
+        source: str,
+        doc_id: str = "",
     ) -> int:
         """
         Upsert chunks into Qdrant + SQLite exact-fact store.
@@ -240,12 +226,12 @@ class QdrantManager:
                     id=chunk_hash,
                     vector=emb.tolist() if hasattr(emb, "tolist") else list(emb),
                     payload={
-                        "text":         chunk,
-                        "source":       source,
-                        "doc_id":       doc_id,
-                        "chunk_index":  i,
+                        "text": chunk,
+                        "source": source,
+                        "doc_id": doc_id,
+                        "chunk_index": i,
                         "total_chunks": len(chunks),
-                        "created_at":   now,          # [NEW] timestamp
+                        "created_at": now,  # [NEW] timestamp
                     },
                 )
             )
@@ -257,11 +243,8 @@ class QdrantManager:
 
         # Rebuild BM25 index
         self._corpus.extend(chunks)
-        self._meta.extend(
-            {"source": source, "doc_id": doc_id, "created_at": now}
-            for _ in chunks
-        )
-        tokenised  = [c.lower().split() for c in self._corpus]
+        self._meta.extend({"source": source, "doc_id": doc_id, "created_at": now} for _ in chunks)
+        tokenised = [c.lower().split() for c in self._corpus]
         self._bm25 = BM25Okapi(tokenised)
 
         return len(points)
@@ -282,25 +265,20 @@ class QdrantManager:
         # Delete from Qdrant by filtering on source payload field
         self.client.delete(
             collection_name=self.COLLECTION,
-            points_selector=Filter(
-                must=[FieldCondition(key="source", match=MatchValue(value=source))]
-            ),
+            points_selector=Filter(must=[FieldCondition(key="source", match=MatchValue(value=source))]),
         )
 
         # Rebuild BM25 corpus excluding deleted source
-        remaining      = [
-            (c, m) for c, m in zip(self._corpus, self._meta)
-            if m.get("source") != source
-        ]
+        remaining = [(c, m) for c, m in zip(self._corpus, self._meta) if m.get("source") != source]
         if remaining:
             self._corpus, self._meta = zip(*remaining)
             self._corpus = list(self._corpus)
-            self._meta   = list(self._meta)
-            self._bm25   = BM25Okapi([c.lower().split() for c in self._corpus])
+            self._meta = list(self._meta)
+            self._bm25 = BM25Okapi([c.lower().split() for c in self._corpus])
         else:
             self._corpus = []
-            self._meta   = []
-            self._bm25   = None
+            self._meta = []
+            self._bm25 = None
 
         # Delete from SQLite exact-fact store
         sqlite_count = self.exact_store.delete_by_source(source)
@@ -333,28 +311,25 @@ class QdrantManager:
         # — BM25 sparse retrieval —
         bm25_ranked: list[tuple[float, str, dict]] = []
         if self._bm25 and self._corpus:
-            tokens   = query.lower().split()
-            scores   = self._bm25.get_scores(tokens)
-            top_idx  = np.argsort(scores)[::-1][: top_k * 2]
-            bm25_ranked = [
-                (float(scores[i]), self._corpus[i], self._meta[i])
-                for i in top_idx
-            ]
+            tokens = query.lower().split()
+            scores = self._bm25.get_scores(tokens)
+            top_idx = np.argsort(scores)[::-1][: top_k * 2]
+            bm25_ranked = [(float(scores[i]), self._corpus[i], self._meta[i]) for i in top_idx]
 
         # — RRF fusion —
-        rrf:  dict[str, float] = {}
-        meta: dict[str, dict]  = {}
+        rrf: dict[str, float] = {}
+        meta: dict[str, dict] = {}
 
         for rank, hit in enumerate(dense_hits):
             payload = hit.payload or {}
-            key     = payload.get("text", "")
+            key = payload.get("text", "")
             if key:
-                rrf[key]  = rrf.get(key, 0.0) + 1.0 / (self.RRF_K + rank + 1)
+                rrf[key] = rrf.get(key, 0.0) + 1.0 / (self.RRF_K + rank + 1)
                 meta[key] = payload
 
         for rank, (_, text, m) in enumerate(bm25_ranked):
             if text:
-                rrf[text]  = rrf.get(text, 0.0) + 1.0 / (self.RRF_K + rank + 1)
+                rrf[text] = rrf.get(text, 0.0) + 1.0 / (self.RRF_K + rank + 1)
                 if text not in meta:
                     meta[text] = m
 
@@ -365,7 +340,7 @@ class QdrantManager:
                 ts_str = payload.get("created_at", "")
                 if ts_str:
                     try:
-                        ts  = datetime.datetime.fromisoformat(ts_str)
+                        ts = datetime.datetime.fromisoformat(ts_str)
                         age_days = max((now - ts).total_seconds() / 86400.0, 0)
                         # Exponential decay: bonus decreases with age
                         bonus = self.TIME_DECAY * (0.5 ** (age_days / 30.0))
@@ -374,15 +349,12 @@ class QdrantManager:
                         pass
 
         # Rerank the top candidates using Cross-Encoder if available
-        sorted_candidates = sorted(rrf.items(), key=lambda x: x[1], reverse=True)[:top_k * 3]
+        sorted_candidates = sorted(rrf.items(), key=lambda x: x[1], reverse=True)[: top_k * 3]
         if self.reranker and sorted_candidates:
             try:
                 pairs = [(query, text) for text, _ in sorted_candidates]
                 rerank_scores = self.reranker.predict(pairs)
-                reranked = [
-                    (text, float(score))
-                    for (text, _), score in zip(sorted_candidates, rerank_scores)
-                ]
+                reranked = [(text, float(score)) for (text, _), score in zip(sorted_candidates, rerank_scores)]
                 sorted_results = sorted(reranked, key=lambda x: x[1], reverse=True)[:top_k]
             except Exception as e:
                 log.warning(f"Reranking failed: {e}. Falling back to RRF rankings.")
@@ -392,10 +364,10 @@ class QdrantManager:
 
         return [
             {
-                "text":       text,
-                "score":      round(score, 6),
-                "source":     meta.get(text, {}).get("source", "unknown"),
-                "doc_id":     meta.get(text, {}).get("doc_id", ""),
+                "text": text,
+                "score": round(score, 6),
+                "source": meta.get(text, {}).get("source", "unknown"),
+                "doc_id": meta.get(text, {}).get("doc_id", ""),
                 "created_at": meta.get(text, {}).get("created_at", ""),
             }
             for text, score in sorted_results

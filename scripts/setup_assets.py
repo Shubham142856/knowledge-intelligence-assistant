@@ -11,7 +11,7 @@ import shutil
 from pathlib import Path
 
 PROJECT_ROOT = Path(__file__).parent.parent
-ASSETS_DIR   = PROJECT_ROOT / "assets"
+ASSETS_DIR = PROJECT_ROOT / "assets"
 ASSETS_DIR.mkdir(exist_ok=True)
 
 # ── Try to locate the logo image ─────────────────────────────────────────────
@@ -19,7 +19,9 @@ ASSETS_DIR.mkdir(exist_ok=True)
 # Priority 2: artifact path from the conversation (copy it over)
 LOGO_DST = ASSETS_DIR / "logo.png"
 
-ARTIFACT_SRC = Path(r"C:\Users\HP\.gemini\antigravity-ide\brain\1fa7f3fe-d004-4431-8cdf-75cfe1314ad8\media__1782589581704.png")
+ARTIFACT_SRC = Path(
+    r"C:\Users\HP\.gemini\antigravity-ide\brain\1fa7f3fe-d004-4431-8cdf-75cfe1314ad8\media__1782589581704.png"
+)
 
 if LOGO_DST.exists():
     print(f"[OK] Logo already exists: {LOGO_DST}")

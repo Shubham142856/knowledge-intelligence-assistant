@@ -1,5 +1,7 @@
 """Verification script for new VYOR AI features."""
+
 import sys
+
 sys.path.insert(0, ".")
 
 import torch
@@ -11,6 +13,7 @@ print("=== VYOR AI Feature Verification ===\n")
 # 1. NaN protection in VYORNeuralBrain
 print("[TEST 1] NaN guard in VYORNeuralBrain...")
 from titans_memory import VYORNeuralBrain
+
 brain = VYORNeuralBrain(dim=384)
 bad_tensor = torch.full((1, 1, 384), float("nan"))
 out = brain.learn_new_info(bad_tensor)
@@ -30,6 +33,7 @@ print("  PASS\n")
 # 3. VYORSurpriseGate Huber Loss + adaptive threshold
 print("[TEST 3] VYORSurpriseGate Huber Loss...")
 from surprise_gate import VYORSurpriseGate
+
 gate = VYORSurpriseGate()
 v1 = torch.rand(384)
 v2 = torch.rand(384)
@@ -42,6 +46,7 @@ print("  PASS\n")
 # 4. ExactFactStore SQLite
 print("[TEST 4] ExactFactStore exact lookup + GDPR delete...")
 from src.vector_db.qdrant_manager import ExactFactStore
+
 db_path = tempfile.mktemp(suffix=".db")
 store = ExactFactStore(db_path)
 store.insert("abc123", "The project code is VYOR-ALPHA-7", "test.pdf", "doc1", "2026-01-01T00:00:00")

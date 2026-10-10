@@ -27,12 +27,12 @@ try:
     if root not in sys.path:
         sys.path.insert(0, root)
     from integration_interface import VYORIntegrationInterface
+
     _TEAM1_AVAILABLE = True
     log.info("Team 1 VYORIntegrationInterface loaded successfully.")
 except ImportError:
     log.warning(
-        "VYORIntegrationInterface (Team 1) not found. "
-        "Falling back to local VYORSurpriseGate + VYOROrchestrator."
+        "VYORIntegrationInterface (Team 1) not found. " "Falling back to local VYORSurpriseGate + VYOROrchestrator."
     )
 
 # ── Always import our own components ─────────────────────────────────────────
@@ -43,9 +43,9 @@ from titans_memory import VYORNeuralBrain
 from orchestrator import VYOROrchestrator
 
 # ── Singletons ────────────────────────────────────────────────────────────────
-_qdrant      = QdrantManager()
-_gate        = VYORSurpriseGate(alpha=0.1, delta=1.0)
-_brain       = VYORNeuralBrain(dim=EMBEDDING_DIM, chunk_size=64)
+_qdrant = QdrantManager()
+_gate = VYORSurpriseGate(alpha=0.1, delta=1.0)
+_brain = VYORNeuralBrain(dim=EMBEDDING_DIM, chunk_size=64)
 _orchestrator: VYOROrchestrator | None = None
 
 
@@ -81,6 +81,7 @@ if _TEAM1_AVAILABLE:
 
 # ── Contract 1: process_incoming_chunk ───────────────────────────────────────
 
+
 def process_incoming_chunk(chunk_text: str, embedding: list[float]) -> str:
     """
     Routes an incoming chunk to Titans LTM or Qdrant based on surprise score.
@@ -113,8 +114,8 @@ def process_incoming_chunk(chunk_text: str, embedding: list[float]) -> str:
         try:
             memory_ref = _brain.recall_info(chunk_tensor)
             # Flatten to same shape for Huber Loss
-            ref_flat   = memory_ref.view(-1)
-            inp_flat   = chunk_tensor.view(-1)
+            ref_flat = memory_ref.view(-1)
+            inp_flat = chunk_tensor.view(-1)
 
             # Pad/truncate to same length
             min_len = min(len(ref_flat), len(inp_flat))
@@ -128,10 +129,7 @@ def process_incoming_chunk(chunk_text: str, embedding: list[float]) -> str:
     huber_loss = _gate.compute_huber_loss(inp_flat, ref_flat)
     decision, threshold = _gate.update_and_route(huber_loss)
 
-    log.debug(
-        f"Surprise gate: loss={huber_loss:.4f}, "
-        f"threshold={threshold:.4f}, decision={decision}"
-    )
+    log.debug(f"Surprise gate: loss={huber_loss:.4f}, " f"threshold={threshold:.4f}, decision={decision}")
 
     if decision == "memory_updated":
         # Commit to LTM with adaptive forgetting weight decay
@@ -142,6 +140,7 @@ def process_incoming_chunk(chunk_text: str, embedding: list[float]) -> str:
 
 
 # ── Contract 2: run_orchestrator ──────────────────────────────────────────────
+
 
 def run_orchestrator(user_query: str) -> dict:
     """
@@ -162,18 +161,18 @@ def run_orchestrator(user_query: str) -> dict:
         try:
             res = _bridge.run_orchestrator(user_query)
             return {
-                "answer":     res.get("answer", ""),
-                "citations":  res.get("citations", []),
+                "answer": res.get("answer", ""),
+                "citations": res.get("citations", []),
                 "confidence": res.get("confidence", 0.0),
             }
         except Exception as exc:
             log.warning(f"Team 1 bridge.run_orchestrator failed ({exc}). Using local orchestrator.")
 
     # ── Local fallback: VYOROrchestrator ─────────────────────────────────────
-    orch   = _get_orchestrator()
+    orch = _get_orchestrator()
     result = orch.execute_query(user_query)
     return {
-        "answer":     result.get("answer", ""),
-        "citations":  result.get("citations", []),
+        "answer": result.get("answer", ""),
+        "citations": result.get("citations", []),
         "confidence": result.get("confidence", 0.40),
     }

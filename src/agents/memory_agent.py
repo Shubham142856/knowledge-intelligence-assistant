@@ -28,10 +28,7 @@ class MemoryAgent(BaseAgent):
         query = input_data.get("query", "")
         recalled_raw = input_data.get("recalled_raw", "")
 
-        input_payload = {
-            "user_query": query,
-            "recalled_neural_data": recalled_raw
-        }
+        input_payload = {"user_query": query, "recalled_neural_data": recalled_raw}
 
         prompt = self.build_prompt(json.dumps(input_payload, indent=2))
         response_text = call_llm(self.system_prompt, prompt)

@@ -49,18 +49,18 @@ def generate(
             "total_tokens": actual total word count
         }
     """
-    needle_words  = needle.split()
+    needle_words = needle.split()
     filler_target = max(total_tokens - len(needle_words), 10)
-    words         = _filler(filler_target).split()
+    words = _filler(filler_target).split()
 
     pos = random.randint(0, len(words))
     words[pos:pos] = needle_words
 
     text = " ".join(words)
     return {
-        "text":         text,
-        "needle":       needle,
-        "position":     pos,
+        "text": text,
+        "needle": needle,
+        "position": pos,
         "total_tokens": len(words),
     }
 
@@ -77,6 +77,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     import os
+
     os.makedirs(os.path.dirname(args.output), exist_ok=True)
 
     result = generate(args.tokens, args.needle)

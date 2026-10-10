@@ -19,7 +19,7 @@ def ingest_document(self, file_path: str, source_name: str, doc_id: str = "") ->
     into the Qdrant Vector database and ExactFactStore SQLite database.
     """
     log.info(f"Task {self.request.id}: starting ingestion for source='{source_name}' path='{file_path}'")
-    
+
     if not os.path.exists(file_path):
         error_msg = f"Document file not found at path: {file_path}"
         log.error(error_msg)
@@ -29,20 +29,15 @@ def ingest_document(self, file_path: str, source_name: str, doc_id: str = "") ->
         # 1. Parse and chunk document
         ingestor = DocumentIngestor()
         chunks = ingestor.parse(file_path)
-        
+
         if not chunks:
             log.warning(f"No text extracted from '{source_name}'. Completing successfully with 0 chunks.")
-            return {
-                "success": True,
-                "chunks_processed": 0,
-                "chunks_saved": 0,
-                "source": source_name
-            }
+            return {"success": True, "chunks_processed": 0, "chunks_saved": 0, "source": source_name}
 
         # 2. Compute embeddings
         embedder = get_embedder()
         embeddings = embedder.encode(chunks, show_progress_bar=False)
-        
+
         # Ensure embeddings are a numpy array
         if not isinstance(embeddings, np.ndarray):
             embeddings = np.array(embeddings, dtype=np.float32)
@@ -64,14 +59,14 @@ def ingest_document(self, file_path: str, source_name: str, doc_id: str = "") ->
             "chunks_processed": len(chunks),
             "chunks_saved": saved_count,
             "source": source_name,
-            "doc_id": doc_id
+            "doc_id": doc_id,
         }
 
     except Exception as exc:
         log.error(f"Task {self.request.id} failed: {exc}")
         # Exponential backoff retry on transient issues (e.g. database locks or network timeouts)
         try:
-            self.retry(exc=exc, countdown=2 ** self.request.retries * 5)
+            self.retry(exc=exc, countdown=2**self.request.retries * 5)
         except Exception:
             # Reached max retries
             return {"success": False, "error": str(exc)}

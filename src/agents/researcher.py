@@ -71,7 +71,6 @@ class Researcher(BaseAgent):
             for src in fetched_srcs:
                 sources.add(src)
 
-
         return {
             "context_chunks": context_chunks,
             "sources": list(sources),

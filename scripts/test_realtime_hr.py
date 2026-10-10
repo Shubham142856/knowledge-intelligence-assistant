@@ -21,8 +21,9 @@ test_queries = [
     "Who approves overtime requests for senior engineers?",
     "How are customer database backups encrypted?",
     "Who handles emergency hardware replacements in the datacenter?",
-    "What is the policy on intellectual property developed by contractors?"
+    "What is the policy on intellectual property developed by contractors?",
 ]
+
 
 def main():
     print(f"\n{'='*75}")
@@ -40,6 +41,7 @@ def main():
         print(f"    Citations : {citations}")
         print(f"    Confidence: {confidence:.2%}")
         print(f"    Cites HR  : {'YES' if 'HR_Policy_2026.pdf' in citations else 'NO'}\n")
+
 
 if __name__ == "__main__":
     main()

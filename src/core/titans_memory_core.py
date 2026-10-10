@@ -22,6 +22,7 @@ class NeuralLTM(nn.Module):
     Neural Long-Term Memory (LTM) represented as an associative feed-forward network.
     It maps key embeddings to value representations via gradient updates at test time.
     """
+
     def __init__(self, dim: int, hidden_dim: int = 512):
         super().__init__()
         self.dim = dim
@@ -30,7 +31,7 @@ class NeuralLTM(nn.Module):
             nn.LayerNorm(hidden_dim),
             nn.SiLU(),
             nn.Linear(hidden_dim, dim),
-            nn.LayerNorm(dim)
+            nn.LayerNorm(dim),
         )
         # Huber Loss for robust reconstruction
         self.loss_fn = nn.HuberLoss(delta=1.0)
@@ -51,22 +52,22 @@ class NeuralLTM(nn.Module):
         """
         self.mlp.train()
         self.optimizer.zero_grad()
-        
+
         # Apply forgetting/decay to weights based on alpha_t before update
         if alpha_t > 0.0:
             with torch.no_grad():
                 for param in self.mlp.parameters():
                     param.data.mul_(1.0 - 0.01 * alpha_t)
-        
+
         # Reconstruction target is the input itself (auto-associative memory)
         reconstruction = self.forward(x)
         loss = self.loss_fn(reconstruction, x)
-        
+
         loss.backward()
-        
+
         # Gradient clipping to prevent NaN/explosions
         nn.utils.clip_grad_norm_(self.mlp.parameters(), max_grad_norm)
-        
+
         self.optimizer.step()
         self.mlp.eval()
         return loss.item()
@@ -76,6 +77,7 @@ class ShortTermMemory(nn.Module):
     """
     Short-Term Memory (STM) utilizing sliding-window self-attention.
     """
+
     def __init__(self, dim: int, num_heads: int = 4):
         super().__init__()
         self.attention = nn.MultiheadAttention(embed_dim=dim, num_heads=num_heads, batch_first=True)
@@ -95,18 +97,13 @@ class TitansMemoryCore(nn.Module):
     The unified Titans Memory Core combining LTM, STM, and Persistent Tokens.
     Supports MAC, MAG, and MAL variants.
     """
-    def __init__(
-        self, 
-        dim: int = 384, 
-        variant: str = "MAC", 
-        num_persistent_tokens: int = 8,
-        chunk_size: int = 64
-    ):
+
+    def __init__(self, dim: int = 384, variant: str = "MAC", num_persistent_tokens: int = 8, chunk_size: int = 64):
         super().__init__()
         self.dim = dim
         self.variant = variant.upper().strip()
         self.chunk_size = chunk_size
-        
+
         # Detect CUDA / CPU
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         log.info(f"Titans Core: Using device allocation -> {self.device}")
@@ -114,22 +111,17 @@ class TitansMemoryCore(nn.Module):
         # Components
         self.ltm = NeuralLTM(dim).to(self.device)
         self.stm = ShortTermMemory(dim).to(self.device)
-        
+
         # Learnable Persistent Tokens
         self.num_persistent_tokens = num_persistent_tokens
         if num_persistent_tokens > 0:
-            self.persistent_tokens = nn.Parameter(
-                torch.randn(1, num_persistent_tokens, dim)
-            )
+            self.persistent_tokens = nn.Parameter(torch.randn(1, num_persistent_tokens, dim))
         else:
             self.persistent_tokens = None
-            
+
         # Gating parameter for MAG
         if self.variant == "MAG":
-            self.gate_layer = nn.Sequential(
-                nn.Linear(dim * 2, dim),
-                nn.Sigmoid()
-            ).to(self.device)
+            self.gate_layer = nn.Sequential(nn.Linear(dim * 2, dim), nn.Sigmoid()).to(self.device)
 
         self.to(self.device)
         log.info(f"Titans Memory Core initialised (variant={self.variant}, dim={dim})")
@@ -140,16 +132,18 @@ class TitansMemoryCore(nn.Module):
         """
         # Ensure tensor is on the correct device
         x = retrieved_vector.to(self.device)
-        
+
         # NaN / Inf validation guards
         if not torch.isfinite(x).all():
             log.warning("Titans Core: input vector contains NaN/Inf. Skipping LTM update.")
             return 0.0
-            
+
         try:
             with torch.enable_grad():
                 loss = self.ltm.update_memory(x, alpha_t=alpha_t)
-            log.info(f"Titans Core LTM: Memory updated at test-time (decay alpha={alpha_t:.4f}). Reconstruction Loss = {loss:.4f}")
+            log.info(
+                f"Titans Core LTM: Memory updated at test-time (decay alpha={alpha_t:.4f}). Reconstruction Loss = {loss:.4f}"
+            )
             return loss
         except Exception as e:
             log.error(f"Titans Core LTM: Failed to update memory: {e}")
@@ -184,13 +178,13 @@ class TitansMemoryCore(nn.Module):
         # Retrieve LTM context vectors for the inputs
         with torch.no_grad():
             ltm_context = self.ltm(x)
-            
+
         # Concatenate LTM context to sequence dimensions
         fused = torch.cat([ltm_context, x], dim=1)
-        
+
         # Process combined sequence through STM self-attention
         stm_out = self.stm(fused)
-        
+
         # Return only the tokens corresponding to the original inputs
         original_tokens_start = ltm_context.size(1)
         return stm_out[:, original_tokens_start:, :]
@@ -200,14 +194,14 @@ class TitansMemoryCore(nn.Module):
         # Retrieve LTM states
         with torch.no_grad():
             ltm_state = self.ltm(x)
-            
+
         # Process STM self-attention
         stm_state = self.stm(x)
-        
+
         # Compute sigmoid gating factor based on LTM & STM values
         concat_state = torch.cat([ltm_state, stm_state], dim=-1)
         gate = self.gate_layer(concat_state)
-        
+
         # Gate the attention output
         return gate * stm_state + (1.0 - gate) * ltm_state
 
@@ -216,6 +210,6 @@ class TitansMemoryCore(nn.Module):
         # Retrieve LTM state
         with torch.no_grad():
             ltm_state = self.ltm(x)
-            
+
         # Pass LTM output as sequential input into STM
         return self.stm(ltm_state + x)

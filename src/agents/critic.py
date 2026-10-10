@@ -70,9 +70,19 @@ class Critic(BaseAgent):
         # Resilient Text Analysis Fallback if JSON fields are missing
         if "approved" not in parsed:
             txt_lower = response_text.lower()
-            if "approved\": true" in txt_lower or "approved: true" in txt_lower or "is accurate" in txt_lower or "logically sound" in txt_lower:
+            if (
+                'approved": true' in txt_lower
+                or "approved: true" in txt_lower
+                or "is accurate" in txt_lower
+                or "logically sound" in txt_lower
+            ):
                 parsed["approved"] = True
-            elif "approved\": false" in txt_lower or "approved: false" in txt_lower or "ungrounded" in txt_lower or "error" in txt_lower:
+            elif (
+                'approved": false' in txt_lower
+                or "approved: false" in txt_lower
+                or "ungrounded" in txt_lower
+                or "error" in txt_lower
+            ):
                 parsed["approved"] = False
             else:
                 # Default approval if draft has high confidence and context was empty
@@ -89,4 +99,3 @@ class Critic(BaseAgent):
             parsed["issues"] = [] if parsed.get("approved") else ["Potential ungrounded or unverified claims."]
 
         return parsed
-

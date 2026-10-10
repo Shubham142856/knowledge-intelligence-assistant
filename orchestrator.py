@@ -30,7 +30,7 @@ log = logging.getLogger("vyor_ai.orchestrator")
 
 class VYOROrchestrator:
     """
-    Unified Multi-Agent Coordinator implementing routing, 
+    Unified Multi-Agent Coordinator implementing routing,
     LTM memory query, and Critic-Writer debate loops.
     """
 
@@ -42,6 +42,7 @@ class VYOROrchestrator:
         # Instantiate memory core if not provided
         if memory_core is None:
             from titans_memory import VYORNeuralBrain
+
             self.memory = VYORNeuralBrain()
         else:
             self.memory = memory_core
@@ -75,14 +76,15 @@ class VYOROrchestrator:
 
         # Split into bullet points / sections
         chunks = [c.strip() for c in content.split("\n") if c.strip() and not c.startswith("VYOR ENTERPRISE")]
-        
+
         # Calculate overlap score for each chunk based on query keywords
         import re
-        q_words = set(re.findall(r'\b\w+\b', query.lower()))
+
+        q_words = set(re.findall(r"\b\w+\b", query.lower()))
         q_words = {w for w in q_words if len(w) > 2}
         scored_chunks = []
         for chunk in chunks:
-            c_words = set(re.findall(r'\b\w+\b', chunk.lower()))
+            c_words = set(re.findall(r"\b\w+\b", chunk.lower()))
             overlap = 0
             for qw in q_words:
                 for cw in c_words:
@@ -92,19 +94,14 @@ class VYOROrchestrator:
             if overlap > 0:
                 scored_chunks.append((overlap, chunk))
 
-
         scored_chunks.sort(key=lambda x: x[0], reverse=True)
         results = []
         for score, chunk in scored_chunks[:3]:
-            results.append({
-                "text": chunk,
-                "source": "HR_Policy_2026.pdf",
-                "score": float(score) / max(1, len(q_words))
-            })
+            results.append(
+                {"text": chunk, "source": "HR_Policy_2026.pdf", "score": float(score) / max(1, len(q_words))}
+            )
 
         return results
-
-
 
     def execute_query(self, user_query: str) -> dict:
         """
@@ -124,17 +121,17 @@ class VYOROrchestrator:
             log.info("Orchestrator: Executing LTM memory-direct recall...")
             try:
                 import os
+
                 if os.getenv("USE_MOCK_LLM") == "1":
                     q_tensor = torch.zeros((1, 1, 384), dtype=torch.float32)
                 else:
                     embedder = get_embedder()
                     q_vec = embedder.encode(user_query)
                     q_tensor = torch.tensor(q_vec, dtype=torch.float32).unsqueeze(0).unsqueeze(0)
-                
+
                 # Retrieve from Titans LTM core
                 recalled_tensor = self.memory.recall_info(q_tensor)
 
-                
                 # Mock textual interpretation of the recalled vector
                 recalled_raw = f"Neural memory association matrix match: {recalled_tensor.mean().item():.4f}"
             except Exception as e:
@@ -142,25 +139,19 @@ class VYOROrchestrator:
                 recalled_raw = "No neural context available."
 
             # Query Memory Agent to interpret LTM state
-            mem_result = self.memory_agent.run({
-                "query": user_query,
-                "recalled_raw": recalled_raw
-            })
-            
+            mem_result = self.memory_agent.run({"query": user_query, "recalled_raw": recalled_raw})
+
             recalled_text = mem_result.get("recalled_text", "")
-            
+
             # If memory agent returned meaningful content, skip RAG search
             if recalled_text:
                 log.info("Orchestrator: Direct memory hit. Routing to refiner.")
-                refined = self.refiner.run({
-                    "text": recalled_text,
-                    "citations": ["Titans_Neural_LTM"]
-                })
+                refined = self.refiner.run({"text": recalled_text, "citations": ["Titans_Neural_LTM"]})
                 return {
                     "answer": refined.get("refined_text", recalled_text),
                     "citations": ["Titans_Neural_LTM"],
                     "confidence": float(mem_result.get("confidence", 0.9)),
-                    "uncertainty": False
+                    "uncertainty": False,
                 }
             log.info("Orchestrator: Memory recall cold. Falling back to standard RAG.")
             route = "rag"
@@ -170,27 +161,26 @@ class VYOROrchestrator:
             plan = self.planner.run({"query": user_query})
             sub_questions = plan.get("sub_questions", [user_query])
             complexity = int(plan.get("complexity", 3))
-        else: # Simple RAG
+        else:  # Simple RAG
             sub_questions = [user_query]
             complexity = 1
 
         log.info(f"Orchestrator: sub-questions -> {sub_questions}")
 
         # Step 2: Retrieve context
-        research = self.researcher.run({
-            "sub_questions": sub_questions,
-            "retrieve_fn": self.retrieval_fn
-        })
+        research = self.researcher.run({"sub_questions": sub_questions, "retrieve_fn": self.retrieval_fn})
         context_chunks = research.get("context_chunks", [])
         sources = research.get("sources", [])
         log.info(f"Orchestrator: context chunks -> {len(context_chunks)}, sources -> {sources}")
 
         # Step 3: Generate initial draft
-        draft = self.writer.run({
-            "query": user_query,
-            "context": context_chunks,
-            "sources": sources,
-        })
+        draft = self.writer.run(
+            {
+                "query": user_query,
+                "context": context_chunks,
+                "sources": sources,
+            }
+        )
         log.info(f"Orchestrator: Initial draft generated (confidence={draft.get('confidence')})")
 
         # Step 4: Iterative Critic-Writer debate loop
@@ -198,13 +188,17 @@ class VYOROrchestrator:
         feedback = {"score": 0.5, "issues": [], "approved": False}
         for iteration in range(1, max_iters + 1):
             log.info(f"Orchestrator: Debate iteration {iteration}/{max_iters}")
-            
+
             # Critic audits the draft
-            feedback = self.critic.run({
-                "draft": draft,
-                "context": context_chunks,
-            })
-            log.info(f"Orchestrator: Critic evaluation score={feedback.get('score')} | approved={feedback.get('approved')}")
+            feedback = self.critic.run(
+                {
+                    "draft": draft,
+                    "context": context_chunks,
+                }
+            )
+            log.info(
+                f"Orchestrator: Critic evaluation score={feedback.get('score')} | approved={feedback.get('approved')}"
+            )
 
             # Stop if approved or passes quality gate
             if feedback.get("approved", False) or feedback.get("score", 0.0) >= self.quality_gate:
@@ -216,27 +210,25 @@ class VYOROrchestrator:
                 break
 
             # Writer refines using critic feedback
-            draft = self.writer.run({
-                "query": user_query,
-                "context": context_chunks,
-                "sources": sources,
-                "critique": feedback.get("issues", []),
-            })
+            draft = self.writer.run(
+                {
+                    "query": user_query,
+                    "context": context_chunks,
+                    "sources": sources,
+                    "critique": feedback.get("issues", []),
+                }
+            )
 
         # Step 5: Polish using Refiner Agent
         final_draft_text = draft.get("text", "Error generating response.")
         citations = draft.get("sources", sources)
         if not citations and final_draft_text:
             citations = ["General_Knowledge"]
-        
-        refined = self.refiner.run({
-            "text": final_draft_text,
-            "citations": citations
-        })
-        
+
+        refined = self.refiner.run({"text": final_draft_text, "citations": citations})
+
         confidence = float(feedback.get("score", 0.75))
         final_citations = refined.get("citations", citations)
-
 
         return {
             "answer": refined.get("refined_text", final_draft_text),
@@ -244,7 +236,6 @@ class VYOROrchestrator:
             "confidence": confidence,
             "uncertainty": draft.get("uncertainty_flag", confidence < 0.65),
         }
-
 
     def run(self, user_query: str) -> dict:
         """Alias for AgentOrchestrator compatibility."""
